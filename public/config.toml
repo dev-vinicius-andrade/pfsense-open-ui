@@ -60,6 +60,26 @@ preset = "relaxed"
 # visible = true
 # order = 2
 
+# Custom Widgets
+# Define custom dashboard widgets using config-driven or template-based approach.
+#
+# Config-driven example:
+# [[dashboard.customWidgets]]
+# type = "config"
+# id = "my-cpu-gauge"
+# title = "My CPU Gauge"
+# dataSource = "system-cpu"
+# displayType = "gauge"
+# refreshInterval = 10
+#
+# Template-based example:
+# [[dashboard.customWidgets]]
+# type = "template"
+# id = "my-custom-widget"
+# title = "Custom Widget"
+# template = "<div>{{data.cpu_usage}}% CPU</div>"
+# apiEndpoints = ["/status/system"]
+
 [defaults]
 # Page to show after login
 landingPage = "/dashboard"

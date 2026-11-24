@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { useConfigStore } from '@/stores/configStore';
 import { WIDGET_REGISTRY, type WidgetCategory } from './widgetRegistry';
+import { CustomWidgetContent } from './CustomWidgetContent';
 import type { ComponentType } from 'react';
+import type { CustomWidget } from '@/config/schema';
 
 export interface ResolvedWidget {
   id: string;
@@ -10,7 +12,7 @@ export interface ResolvedWidget {
   component: ComponentType;
   visible: boolean;
   order: number;
-  category: WidgetCategory;
+  category: WidgetCategory | 'custom';
 }
 
 const SESSION_STORAGE_KEY = 'pfsense-dashboard-layout';
@@ -52,6 +54,18 @@ export function saveDashboardLayout(widgets: ResolvedWidget[]): void {
   }
 }
 
+function resolveCustomWidgets(customWidgets: CustomWidget[], baseOrder: number): ResolvedWidget[] {
+  return customWidgets.map((widget, index) => ({
+    id: widget.id.startsWith('custom-') ? widget.id : `custom-${widget.id}`,
+    title: widget.title,
+    description: widget.description ?? '',
+    component: () => <CustomWidgetContent widget={widget} />,
+    visible: true,
+    order: baseOrder + index,
+    category: 'custom' as const,
+  }));
+}
+
 export function useDashboardLayout(): ResolvedWidget[] {
   const dashboardConfig = useConfigStore((state) => state.config.dashboard);
 
@@ -79,6 +93,14 @@ export function useDashboardLayout(): ResolvedWidget[] {
       };
     });
 
+    // Resolve custom widgets and append after built-in widgets
+    const customWidgets = dashboardConfig.customWidgets ?? [];
+    if (customWidgets.length > 0) {
+      const maxBuiltInOrder = resolved.length > 0 ? Math.max(...resolved.map((w) => w.order)) : 0;
+      const customResolved = resolveCustomWidgets(customWidgets, maxBuiltInOrder + 1);
+      resolved.push(...customResolved);
+    }
+
     // Sort by order, stable sort preserves registry order for equal values
     resolved.sort((a, b) => a.order - b.order);
 
@@ -92,7 +114,7 @@ export function useVisibleWidgets(): ResolvedWidget[] {
 }
 
 export interface GroupedWidgets {
-  category: WidgetCategory;
+  category: WidgetCategory | 'custom';
   label: string;
   widgets: ResolvedWidget[];
 }
@@ -101,7 +123,7 @@ export function useGroupedWidgets(): GroupedWidgets[] {
   const visible = useVisibleWidgets();
 
   return useMemo(() => {
-    const groups = new Map<WidgetCategory, ResolvedWidget[]>();
+    const groups = new Map<WidgetCategory | 'custom', ResolvedWidget[]>();
     for (const widget of visible) {
       const existing = groups.get(widget.category);
       if (existing) {
@@ -111,18 +133,20 @@ export function useGroupedWidgets(): GroupedWidgets[] {
       }
     }
 
-    const categoryOrder: WidgetCategory[] = ['system', 'network', 'services', 'security'];
+    const categoryOrder: (WidgetCategory | 'custom')[] = ['system', 'network', 'services', 'security', 'custom'];
     const result: GroupedWidgets[] = [];
+
+    const labels: Record<WidgetCategory | 'custom', string> = {
+      system: 'System',
+      network: 'Network',
+      services: 'Services',
+      security: 'Security',
+      custom: 'Custom Widgets',
+    };
 
     for (const category of categoryOrder) {
       const widgets = groups.get(category);
       if (widgets && widgets.length > 0) {
-        const labels: Record<WidgetCategory, string> = {
-          system: 'System',
-          network: 'Network',
-          services: 'Services',
-          security: 'Security',
-        };
         result.push({ category, label: labels[category], widgets });
       }
     }

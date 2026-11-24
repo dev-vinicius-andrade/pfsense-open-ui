@@ -34,8 +34,60 @@ const dashboardWidgetSchema = z.object({
   order: z.number(),
 });
 
+// Base fields shared by all custom widgets
+const customWidgetBaseSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().optional(),
+  refreshInterval: z.number().min(5).max(300).default(30),
+  accentColor: z.string().optional(),
+});
+
+// Config-driven widget: selects a data source + display type
+const configWidgetSchema = customWidgetBaseSchema.extend({
+  type: z.literal('config'),
+  dataSource: z.string().min(1),
+  displayType: z.enum([
+    'gauge',
+    'stat-card',
+    'line-chart',
+    'bar-chart',
+    'table',
+    'list',
+    'status-indicator',
+  ]),
+  fieldMapping: z.record(z.string(), z.string()).optional(),
+  thresholds: z
+    .array(
+      z.object({
+        value: z.number(),
+        color: z.string(),
+        label: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
+
+// Template-based widget: user-provided HTML template
+const templateWidgetSchema = customWidgetBaseSchema.extend({
+  type: z.literal('template'),
+  template: z.string().min(1).max(10240),
+  css: z.string().max(5120).optional(),
+  apiEndpoints: z.array(z.string()).max(5).optional(),
+});
+
+export const customWidgetSchema = z.discriminatedUnion('type', [
+  configWidgetSchema,
+  templateWidgetSchema,
+]);
+
+export type CustomWidget = z.infer<typeof customWidgetSchema>;
+export type ConfigWidget = z.infer<typeof configWidgetSchema>;
+export type TemplateWidget = z.infer<typeof templateWidgetSchema>;
+
 const dashboardSchema = z.object({
   widgets: z.array(dashboardWidgetSchema).optional(),
+  customWidgets: z.array(customWidgetSchema).optional(),
 });
 
 const defaultsSchema = z.object({

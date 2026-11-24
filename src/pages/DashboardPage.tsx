@@ -20,10 +20,16 @@ import CheckIcon from '@mui/icons-material/Check';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useVisibleWidgets, saveDashboardLayout } from './dashboard/useDashboardLayout';
 import { DraggableWidget } from './dashboard/DraggableWidget';
-import { CATEGORY_LABELS } from './dashboard/widgetRegistry';
 import type { ResolvedWidget } from './dashboard/useDashboardLayout';
-import type { WidgetCategory } from './dashboard/widgetRegistry';
 import type { DragEndEvent } from '@dnd-kit/core';
+
+const CATEGORY_LABELS: Record<string, string> = {
+  system: 'System',
+  network: 'Network',
+  services: 'Services',
+  security: 'Security',
+  custom: 'Custom Widgets',
+};
 
 function WidgetContent({ widget }: { widget: ResolvedWidget }) {
   const Component = widget.component;
@@ -34,13 +40,13 @@ interface FlatItem {
   type: 'widget' | 'divider';
   id: string;
   widget?: ResolvedWidget;
-  category?: WidgetCategory;
+  category?: string;
   label?: string;
 }
 
 function buildFlatItems(widgets: ResolvedWidget[]): FlatItem[] {
   const items: FlatItem[] = [];
-  let lastCategory: WidgetCategory | null = null;
+  let lastCategory: string | null = null;
 
   for (const widget of widgets) {
     if (widget.category !== lastCategory) {
@@ -48,7 +54,7 @@ function buildFlatItems(widgets: ResolvedWidget[]): FlatItem[] {
         type: 'divider',
         id: `divider-${widget.category}`,
         category: widget.category,
-        label: CATEGORY_LABELS[widget.category],
+        label: CATEGORY_LABELS[widget.category] ?? widget.category,
       });
       lastCategory = widget.category;
     }

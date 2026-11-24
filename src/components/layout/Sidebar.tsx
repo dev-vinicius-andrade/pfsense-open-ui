@@ -11,6 +11,7 @@ import {
   Box,
   Divider,
   IconButton,
+  Tooltip,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -201,20 +202,114 @@ interface NavEntryProps {
 function NavEntry({ label, iconKey, isActive, onClick, collapsed }: NavEntryProps) {
   const IconComponent = getIcon(iconKey, DashboardIcon);
 
-  return (
+  const button = (
     <ListItemButton
       selected={isActive}
       onClick={onClick}
       sx={{
+        borderRadius: 2,
+        mb: 0.5,
+        px: collapsed ? 0 : 1.5,
+        py: collapsed ? 0 : 0.75,
+        minHeight: collapsed ? 40 : 36,
+        minWidth: collapsed ? 40 : undefined,
+        width: collapsed ? 40 : undefined,
         justifyContent: collapsed ? 'center' : 'initial',
-        px: collapsed ? 1.5 : undefined,
+        transition: 'background-color 150ms ease, transform 150ms ease, color 150ms ease',
+        '&:hover': {
+          backgroundColor: 'action.hover',
+          transform: collapsed ? 'none' : 'scale(1.02)',
+        },
+        '&.Mui-selected': {
+          backgroundColor: 'primary.main',
+          color: 'primary.contrastText',
+          '&:hover': {
+            backgroundColor: 'primary.dark',
+          },
+          '& .MuiListItemIcon-root': {
+            color: 'primary.contrastText',
+          },
+          '& .MuiListItemText-primary': {
+            fontWeight: 600,
+          },
+        },
+        '&:focus-visible': {
+          outline: '2px solid',
+          outlineColor: 'primary.main',
+          outlineOffset: '2px',
+        },
       }}
     >
-      <ListItemIcon sx={{ minWidth: collapsed ? 'auto' : 40, justifyContent: 'center' }}>
+      <ListItemIcon
+        sx={{
+          minWidth: collapsed ? 'auto' : 32,
+          mr: collapsed ? 0 : 1.5,
+          justifyContent: 'center',
+          color: isActive ? 'primary.contrastText' : 'text.secondary',
+          transition: 'color 150ms ease',
+        }}
+      >
         <IconComponent fontSize="small" />
       </ListItemIcon>
-      {!collapsed && <ListItemText primary={label} />}
+      {!collapsed && (
+        <ListItemText
+          primary={
+            <Typography
+              component="span"
+              sx={{
+                fontSize: 14,
+                fontWeight: isActive ? 600 : 500,
+                lineHeight: 1.4,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                display: 'block',
+              }}
+            >
+              {label}
+            </Typography>
+          }
+        />
+      )}
     </ListItemButton>
+  );
+
+  if (collapsed) {
+    return (
+      <Tooltip title={label} placement="right" arrow>
+        {button}
+      </Tooltip>
+    );
+  }
+
+  return button;
+}
+
+interface SectionLabelProps {
+  children: React.ReactNode;
+  visible: boolean;
+}
+
+function SectionLabel({ children, visible }: SectionLabelProps) {
+  if (!visible) return null;
+  return (
+    <Typography
+      variant="caption"
+      sx={{
+        display: 'block',
+        px: 2,
+        py: 0.5,
+        mt: 1,
+        mb: 0.5,
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: 1,
+        textTransform: 'uppercase',
+        color: 'text.secondary',
+      }}
+    >
+      {children}
+    </Typography>
   );
 }
 
@@ -301,6 +396,7 @@ export function Sidebar() {
       {/* Favorites section */}
       {favoriteItems.length > 0 && (
         <>
+          <SectionLabel visible={showLabels}>Favorites</SectionLabel>
           <List sx={{ px: 1, py: 0.5 }}>
             {favoriteItems.map((item) => (
               <NavEntry
@@ -313,21 +409,14 @@ export function Sidebar() {
               />
             ))}
           </List>
-          <Divider />
+          <Divider sx={{ my: 1 }} />
         </>
       )}
 
       {/* Custom pinned pages section */}
       {customItems.length > 0 && (
         <>
-          {showLabels && (
-            <Typography
-              variant="caption"
-              sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}
-            >
-              Pinned Pages
-            </Typography>
-          )}
+          <SectionLabel visible={showLabels}>Pinned Pages</SectionLabel>
           <List sx={{ px: 1, py: 0.5 }}>
             {customItems.map((item) => (
               <NavEntry
@@ -340,11 +429,12 @@ export function Sidebar() {
               />
             ))}
           </List>
-          <Divider />
+          <Divider sx={{ my: 1 }} />
         </>
       )}
 
       {/* Main navigation */}
+      <SectionLabel visible={showLabels}>Navigation</SectionLabel>
       <List sx={{ px: 1 }}>
         {resolvedNavItems.map((item) => (
           <NavEntry
