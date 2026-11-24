@@ -40,6 +40,7 @@ import { colorSchemes } from '@/theme/schemes';
 import { DEFAULT_NAV_ITEMS } from '@/components/layout/navConfig';
 import { PAGE_REGISTRY, getPagesByCategory, getPageById } from '@/components/layout/pageRegistry';
 import { ThemePreviewCard } from './ThemePreviewCard';
+import { WidgetBuilderTab } from './WidgetBuilderTab';
 import type { AppConfig } from '@/config/schema';
 
 const THEME_MODES = ['light', 'dark', 'auto'] as const;
@@ -276,6 +277,7 @@ export function SettingsPage() {
           <Tab label="Layout" id="settings-tab-1" aria-controls="settings-tabpanel-1" />
           <Tab label="Navigation" id="settings-tab-2" aria-controls="settings-tabpanel-2" />
           <Tab label="Dashboard" id="settings-tab-3" aria-controls="settings-tabpanel-3" />
+          <Tab label="Custom Widgets" id="settings-tab-4" aria-controls="settings-tabpanel-4" />
         </Tabs>
 
         {/* Appearance Tab */}
@@ -649,6 +651,11 @@ export function SettingsPage() {
                 );
               })}
           </List>
+        </TabPanel>
+
+        {/* Custom Widgets Tab */}
+        <TabPanel value={activeTab} index={4}>
+          <WidgetBuilderTab />
         </TabPanel>
       </Paper>
 
