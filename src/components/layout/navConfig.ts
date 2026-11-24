@@ -12,7 +12,7 @@ export const DEFAULT_NAV_ITEMS: NavItemConfig[] = [
   { id: 'interfaces', label: 'Interfaces', path: '/interfaces', icon: 'SettingsEthernet' },
   { id: 'vpn', label: 'VPN', path: '/vpn', icon: 'VpnKey' },
   { id: 'services', label: 'Services', path: '/services', icon: 'Dns' },
-  { id: 'system', label: 'System', path: '/system', icon: 'Settings' },
+  { id: 'settings', label: 'Settings', path: '/system', icon: 'Settings' },
   { id: 'monitoring', label: 'Monitoring', path: '/monitoring', icon: 'MonitorHeart' },
-  { id: 'settings', label: 'Settings', path: '/settings', icon: 'Settings' },
+  { id: 'ui-preferences', label: 'UI Preferences', path: '/ui-preferences', icon: 'Palette' },
 ];

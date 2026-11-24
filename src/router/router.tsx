@@ -78,7 +78,7 @@ export const router = createBrowserRouter(
             {
               path: 'system/*',
               element: <SystemPage />,
-              handle: { breadcrumb: 'System' },
+              handle: { breadcrumb: 'Settings' },
             },
             {
               path: 'monitoring/*',
@@ -86,9 +86,9 @@ export const router = createBrowserRouter(
               handle: { breadcrumb: 'Monitoring' },
             },
             {
-              path: 'settings',
+              path: 'ui-preferences',
               element: <SettingsPage />,
-              handle: { breadcrumb: 'Settings' },
+              handle: { breadcrumb: 'UI Preferences' },
             },
           ],
         },

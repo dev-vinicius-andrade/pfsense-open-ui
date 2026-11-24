@@ -1,34 +1,229 @@
-import { Box, Typography } from '@mui/material';
+import { useState, useCallback, useMemo } from 'react';
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  closestCenter,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  rectSortingStrategy,
+  arrayMove,
+  sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable';
+import { Box, Typography, Button, Alert } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { useGroupedWidgets } from './dashboard/useDashboardLayout';
+import { useVisibleWidgets, saveDashboardLayout } from './dashboard/useDashboardLayout';
+import { DraggableWidget } from './dashboard/DraggableWidget';
+import { CATEGORY_LABELS } from './dashboard/widgetRegistry';
 import type { ResolvedWidget } from './dashboard/useDashboardLayout';
+import type { WidgetCategory } from './dashboard/widgetRegistry';
+import type { DragEndEvent } from '@dnd-kit/core';
 
-function WidgetRenderer({ widget }: { widget: ResolvedWidget }) {
+function WidgetContent({ widget }: { widget: ResolvedWidget }) {
   const Component = widget.component;
-  return (
-    <Box sx={{ mb: 3 }}>
-      <Component />
-    </Box>
-  );
+  return <Component />;
+}
+
+interface FlatItem {
+  type: 'widget' | 'divider';
+  id: string;
+  widget?: ResolvedWidget;
+  category?: WidgetCategory;
+  label?: string;
+}
+
+function buildFlatItems(widgets: ResolvedWidget[]): FlatItem[] {
+  const items: FlatItem[] = [];
+  let lastCategory: WidgetCategory | null = null;
+
+  for (const widget of widgets) {
+    if (widget.category !== lastCategory) {
+      items.push({
+        type: 'divider',
+        id: `divider-${widget.category}`,
+        category: widget.category,
+        label: CATEGORY_LABELS[widget.category],
+      });
+      lastCategory = widget.category;
+    }
+    items.push({
+      type: 'widget',
+      id: widget.id,
+      widget,
+    });
+  }
+
+  return items;
 }
 
 export function DashboardPage() {
-  const groups = useGroupedWidgets();
+  const visibleWidgets = useVisibleWidgets();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const flatItems = useMemo(() => buildFlatItems(visibleWidgets), [visibleWidgets]);
+  const sortableIds = useMemo(
+    () => flatItems.filter((item) => item.type === 'widget').map((item) => item.id),
+    [flatItems],
+  );
+
+  const handleDragStart = useCallback((event: { active: { id: string | number } }) => {
+    setActiveId(String(event.active.id));
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      setActiveId(null);
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const oldIndex = sortableIds.indexOf(String(active.id));
+      const newIndex = sortableIds.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(sortableIds, oldIndex, newIndex);
+      const updatedWidgets = reordered.map((id, index) => {
+        const widget = visibleWidgets.find((w) => w.id === id);
+        if (!widget) return null;
+        return { ...widget, order: index };
+      }).filter((w): w is ResolvedWidget => w !== null);
+
+      saveDashboardLayout(updatedWidgets);
+    },
+    [sortableIds, visibleWidgets],
+  );
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+  }, []);
+
+  const toggleEditMode = useCallback(() => {
+    setIsEditMode((prev) => !prev);
+    setActiveId(null);
+  }, []);
+
+  const activeWidget = activeId
+    ? visibleWidgets.find((w) => w.id === activeId)
+    : null;
+
+  const headerActions = (
+    <Button
+      variant={isEditMode ? 'contained' : 'outlined'}
+      startIcon={isEditMode ? <CheckIcon /> : <EditIcon />}
+      onClick={toggleEditMode}
+      size="small"
+    >
+      {isEditMode ? 'Done' : 'Edit Layout'}
+    </Button>
+  );
 
   return (
     <Box>
-      <PageHeader title="Dashboard" />
-      {groups.map((group) => (
-        <Box key={group.category} sx={{ mb: 2 }}>
-          <Typography variant="h6" gutterBottom sx={{ mt: group.category === 'system' ? 0 : 2 }}>
-            {group.label}
-          </Typography>
-          {group.widgets.map((widget) => (
-            <WidgetRenderer key={widget.id} widget={widget} />
-          ))}
-        </Box>
-      ))}
-      {groups.length === 0 && (
+      <PageHeader title="Dashboard" actions={headerActions} />
+
+      {isEditMode && (
+        <Alert severity="info" sx={{ mb: 2 }} onClose={toggleEditMode}>
+          Drag widgets to rearrange your dashboard. Click Done when finished.
+        </Alert>
+      )}
+
+      {isEditMode ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
+            {flatItems.map((item) => {
+              if (item.type === 'divider') {
+                return (
+                  <Typography
+                    key={item.id}
+                    variant="h6"
+                    gutterBottom
+                    sx={{ mt: 2, mb: 1 }}
+                  >
+                    {item.label}
+                  </Typography>
+                );
+              }
+
+              const widget = item.widget!;
+              return (
+                <DraggableWidget
+                  key={widget.id}
+                  id={widget.id}
+                  title={widget.title}
+                  isEditMode={true}
+                >
+                  <WidgetContent widget={widget} />
+                </DraggableWidget>
+              );
+            })}
+          </SortableContext>
+
+          <DragOverlay dropAnimation={null}>
+            {activeWidget ? (
+              <Box
+                sx={{
+                  opacity: 0.7,
+                  boxShadow: 8,
+                  borderRadius: 1,
+                  bgcolor: 'background.paper',
+                  p: 2,
+                  minWidth: 300,
+                }}
+              >
+                <Typography variant="subtitle2" color="text.secondary">
+                  {activeWidget.title}
+                </Typography>
+              </Box>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      ) : (
+        flatItems.map((item) => {
+          if (item.type === 'divider') {
+            return (
+              <Typography
+                key={item.id}
+                variant="h6"
+                gutterBottom
+                sx={{ mt: item.category === 'system' ? 0 : 2 }}
+              >
+                {item.label}
+              </Typography>
+            );
+          }
+
+          const widget = item.widget!;
+          return (
+            <DraggableWidget
+              key={widget.id}
+              id={widget.id}
+              title={widget.title}
+              isEditMode={false}
+            >
+              <WidgetContent widget={widget} />
+            </DraggableWidget>
+          );
+        })
+      )}
+
+      {visibleWidgets.length === 0 && (
         <Typography color="text.secondary">No widgets configured.</Typography>
       )}
     </Box>

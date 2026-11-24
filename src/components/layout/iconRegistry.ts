@@ -43,6 +43,7 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import CellTowerIcon from '@mui/icons-material/CellTower';
+import PaletteIcon from '@mui/icons-material/Palette';
 
 export const ICON_REGISTRY: Record<string, React.ElementType> = {
   Dashboard: DashboardIcon,
@@ -89,6 +90,7 @@ export const ICON_REGISTRY: Record<string, React.ElementType> = {
   Receipt: ReceiptIcon,
   TableChart: TableChartIcon,
   CellTower: CellTowerIcon,
+  Palette: PaletteIcon,
 };
 
 export function getIcon(

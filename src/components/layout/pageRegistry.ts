@@ -15,9 +15,9 @@ export const PAGE_REGISTRY: PageEntry[] = [
   { id: 'interfaces', label: 'Interfaces', path: '/interfaces', icon: 'SettingsEthernet', category: 'interfaces', isTopLevel: true },
   { id: 'vpn', label: 'VPN', path: '/vpn', icon: 'VpnKey', category: 'vpn', isTopLevel: true },
   { id: 'services', label: 'Services', path: '/services', icon: 'Dns', category: 'services', isTopLevel: true },
-  { id: 'system', label: 'System', path: '/system', icon: 'Settings', category: 'system', isTopLevel: true },
+  { id: 'settings', label: 'Settings', path: '/system', icon: 'Settings', category: 'settings', isTopLevel: true },
   { id: 'monitoring', label: 'Monitoring', path: '/monitoring', icon: 'MonitorHeart', category: 'monitoring', isTopLevel: true },
-  { id: 'settings', label: 'Settings', path: '/settings', icon: 'Settings', category: 'settings', isTopLevel: true },
+  { id: 'ui-preferences', label: 'UI Preferences', path: '/ui-preferences', icon: 'Palette', category: 'ui-preferences', isTopLevel: true },
 
   // Firewall sub-pages
   { id: 'firewall-aliases', label: 'Aliases', path: '/firewall/aliases', icon: 'Label', category: 'firewall', isTopLevel: false },
@@ -47,15 +47,15 @@ export const PAGE_REGISTRY: PageEntry[] = [
   { id: 'ssh', label: 'SSH', path: '/services/ssh', icon: 'Terminal', category: 'services', isTopLevel: false },
   { id: 'cron-jobs', label: 'Cron Jobs', path: '/services/cron', icon: 'Timer', category: 'services', isTopLevel: false },
 
-  // System sub-pages
-  { id: 'system-users', label: 'Users', path: '/system/users', icon: 'People', category: 'system', isTopLevel: false },
-  { id: 'system-certificates', label: 'Certificates', path: '/system/certificates', icon: 'VerifiedUser', category: 'system', isTopLevel: false },
-  { id: 'system-firmware', label: 'Firmware', path: '/system/firmware', icon: 'SystemUpdate', category: 'system', isTopLevel: false },
-  { id: 'system-diagnostics', label: 'Diagnostics', path: '/system/diagnostics', icon: 'BugReport', category: 'system', isTopLevel: false },
-  { id: 'terminal', label: 'Terminal', path: '/system/terminal', icon: 'Code', category: 'system', isTopLevel: false },
-  { id: 'system-general', label: 'General Setup', path: '/system/general', icon: 'Tune', category: 'system', isTopLevel: false },
-  { id: 'system-packages', label: 'Packages', path: '/system/packages', icon: 'Inventory', category: 'system', isTopLevel: false },
-  { id: 'system-tunables', label: 'Tunables', path: '/system/tunables', icon: 'Build', category: 'system', isTopLevel: false },
+  // Settings sub-pages (pfSense system configuration)
+  { id: 'settings-users', label: 'Users', path: '/system/users', icon: 'People', category: 'settings', isTopLevel: false },
+  { id: 'settings-certificates', label: 'Certificates', path: '/system/certificates', icon: 'VerifiedUser', category: 'settings', isTopLevel: false },
+  { id: 'settings-firmware', label: 'Firmware', path: '/system/firmware', icon: 'SystemUpdate', category: 'settings', isTopLevel: false },
+  { id: 'settings-diagnostics', label: 'Diagnostics', path: '/system/diagnostics', icon: 'BugReport', category: 'settings', isTopLevel: false },
+  { id: 'terminal', label: 'Terminal', path: '/system/terminal', icon: 'Code', category: 'settings', isTopLevel: false },
+  { id: 'settings-general', label: 'General Setup', path: '/system/general', icon: 'Tune', category: 'settings', isTopLevel: false },
+  { id: 'settings-packages', label: 'Packages', path: '/system/packages', icon: 'Inventory', category: 'settings', isTopLevel: false },
+  { id: 'settings-tunables', label: 'Tunables', path: '/system/tunables', icon: 'Build', category: 'settings', isTopLevel: false },
 
   // Monitoring sub-pages
   { id: 'monitoring-traffic', label: 'Traffic Graphs', path: '/monitoring/traffic', icon: 'ShowChart', category: 'monitoring', isTopLevel: false },
