@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -32,10 +33,12 @@ import {
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useConfigStore } from '@/stores/configStore';
 import { colorSchemes } from '@/theme/schemes';
 import { DEFAULT_NAV_ITEMS } from '@/components/layout/navConfig';
+import { PAGE_REGISTRY, getPagesByCategory, getPageById } from '@/components/layout/pageRegistry';
 import { ThemePreviewCard } from './ThemePreviewCard';
 import type { AppConfig } from '@/config/schema';
 
@@ -46,6 +49,18 @@ const LAYOUT_PRESETS: { value: AppConfig['layout']['preset']; label: string; des
   { value: 'relaxed', label: 'Relaxed', description: 'Full sidebar, spacious cards, comfortable reading' },
   { value: 'custom', label: 'Custom', description: 'Configure your own layout parameters' },
 ];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  dashboard: 'Dashboard',
+  firewall: 'Firewall',
+  nat: 'NAT',
+  interfaces: 'Interfaces',
+  vpn: 'VPN',
+  services: 'Services',
+  system: 'System',
+  monitoring: 'Monitoring',
+  settings: 'Settings',
+};
 
 interface TabPanelProps {
   children: React.ReactNode;
@@ -159,6 +174,37 @@ export function SettingsPage() {
     [config.menu.order, updateMenu],
   );
 
+  const handleToggleCustomItem = useCallback(
+    (pageId: string) => {
+      const customItems = config.menu.customItems ?? [];
+      const exists = customItems.some((item) => item.id === pageId);
+      const next = exists
+        ? customItems.filter((item) => item.id !== pageId)
+        : [...customItems, { id: pageId }];
+      updateMenu({ customItems: next });
+    },
+    [config.menu.customItems, updateMenu],
+  );
+
+  const handleCustomItemLabelChange = useCallback(
+    (pageId: string, label: string) => {
+      const customItems = (config.menu.customItems ?? []).map((item) => {
+        if (item.id !== pageId) return item;
+        return label.trim() ? { ...item, label: label.trim() } : { id: item.id };
+      });
+      updateMenu({ customItems });
+    },
+    [config.menu.customItems, updateMenu],
+  );
+
+  const handleRemoveCustomItem = useCallback(
+    (pageId: string) => {
+      const customItems = (config.menu.customItems ?? []).filter((item) => item.id !== pageId);
+      updateMenu({ customItems });
+    },
+    [config.menu.customItems, updateMenu],
+  );
+
   const handleWidgetVisibility = useCallback(
     (widgetId: string, visible: boolean) => {
       const widgets = [...(config.dashboard.widgets ?? [])];
@@ -194,6 +240,11 @@ export function SettingsPage() {
   const hiddenItems = config.menu.hidden ?? [];
   const favoriteItems = config.menu.favorites ?? [];
   const customLabels = config.menu.customLabels ?? {};
+  const customItems = config.menu.customItems ?? [];
+  const customItemIdSet = new Set(customItems.map((item) => item.id));
+  const customItemMap = new Map(customItems.map((item) => [item.id, item]));
+
+  const pagesByCategory = getPagesByCategory();
 
   const defaultWidgets = [
     { id: 'system-status', label: 'System Status' },
@@ -204,6 +255,9 @@ export function SettingsPage() {
     { id: 'disk-usage', label: 'Disk Usage' },
   ];
   const dashboardWidgets = config.dashboard.widgets ?? defaultWidgets.map((w, i) => ({ ...w, visible: true, order: i }));
+
+  // All page IDs available for favorites (top-level + sub-pages)
+  const allFavoritablePages = PAGE_REGISTRY;
 
   return (
     <Box sx={{ maxWidth: 960, mx: 'auto' }}>
@@ -368,6 +422,109 @@ export function SettingsPage() {
 
           <Divider sx={{ my: 3 }} />
 
+          {/* Pin Pages to Sidebar */}
+          <Typography variant="h6" gutterBottom>Pin Pages to Sidebar</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Add specific pages directly to the sidebar for quick access. Pinned pages appear in a separate section above the main navigation.
+          </Typography>
+
+          {/* Currently pinned items */}
+          {customItems.length > 0 && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Currently Pinned</Typography>
+              <List dense sx={{ maxWidth: 600 }}>
+                {customItems.map((item) => {
+                  const pageEntry = getPageById(item.id);
+                  return (
+                    <ListItem
+                      key={item.id}
+                      secondaryAction={
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          onClick={() => handleRemoveCustomItem(item.id)}
+                          aria-label={`Remove ${pageEntry?.label ?? item.id}`}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span>{item.label ?? pageEntry?.label ?? item.id}</span>
+                            <Chip
+                              label={CATEGORY_LABELS[pageEntry?.category ?? ''] ?? pageEntry?.category ?? ''}
+                              size="small"
+                              variant="outlined"
+                              sx={{ height: 20, fontSize: '0.7rem' }}
+                            />
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </Box>
+          )}
+
+          {/* Available pages grouped by category */}
+          <Box sx={{ maxHeight: 500, overflowY: 'auto', pr: 1 }}>
+            {Array.from(pagesByCategory.entries()).map(([category, pages]) => (
+              <Box key={category} sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 0.5, color: 'text.secondary' }}>
+                  {CATEGORY_LABELS[category] ?? category}
+                </Typography>
+                <List dense disablePadding>
+                  {pages.map((page) => {
+                    const isPinned = customItemIdSet.has(page.id);
+                    const customItem = customItemMap.get(page.id);
+                    return (
+                      <ListItem key={page.id} disablePadding sx={{ pl: 1 }}>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isPinned}
+                              onChange={() => handleToggleCustomItem(page.id)}
+                              size="small"
+                            />
+                          }
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <span>{page.label}</span>
+                              {!page.isTopLevel && (
+                                <Chip
+                                  label="Sub-page"
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ height: 18, fontSize: '0.65rem' }}
+                                />
+                              )}
+                            </Box>
+                          }
+                          sx={{ mr: 0 }}
+                        />
+                        {isPinned && (
+                          <TextField
+                            size="small"
+                            placeholder="Override label"
+                            value={customItem?.label ?? ''}
+                            onChange={(e) => handleCustomItemLabelChange(page.id, e.target.value)}
+                            sx={{ ml: 2, width: 160 }}
+                            slotProps={{ input: { 'aria-label': `Override label for ${page.label}` } }}
+                          />
+                        )}
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </Box>
+            ))}
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
           <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" gutterBottom>Hidden Sections</Typography>
@@ -391,22 +548,39 @@ export function SettingsPage() {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" gutterBottom>Favorites</Typography>
-              <List dense>
-                {DEFAULT_NAV_ITEMS.map((item) => (
-                  <ListItem key={item.id} disablePadding>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={favoriteItems.includes(item.id)}
-                          onChange={() => handleToggleFavorite(item.id)}
-                          size="small"
-                        />
-                      }
-                      label={item.label}
-                    />
-                  </ListItem>
-                ))}
-              </List>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Pin items to the quick-access area at the top of the sidebar. Includes all pages.
+              </Typography>
+              <Box sx={{ maxHeight: 400, overflowY: 'auto', pr: 1 }}>
+                <List dense>
+                  {allFavoritablePages.map((page) => (
+                    <ListItem key={page.id} disablePadding>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={favoriteItems.includes(page.id)}
+                            onChange={() => handleToggleFavorite(page.id)}
+                            size="small"
+                          />
+                        }
+                        label={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <span>{page.label}</span>
+                            {!page.isTopLevel && (
+                              <Chip
+                                label={CATEGORY_LABELS[page.category] ?? page.category}
+                                size="small"
+                                variant="outlined"
+                                sx={{ height: 18, fontSize: '0.65rem' }}
+                              />
+                            )}
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
             </Grid>
           </Grid>
 

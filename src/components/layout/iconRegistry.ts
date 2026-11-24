@@ -20,6 +20,29 @@ import UpdateIcon from '@mui/icons-material/Update';
 import PeopleIcon from '@mui/icons-material/People';
 import LockIcon from '@mui/icons-material/Lock';
 import DescriptionIcon from '@mui/icons-material/Description';
+import LabelIcon from '@mui/icons-material/Label';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import CallMadeIcon from '@mui/icons-material/CallMade';
+import CallReceivedIcon from '@mui/icons-material/CallReceived';
+import SwapCallsIcon from '@mui/icons-material/SwapCalls';
+import HubIcon from '@mui/icons-material/Hub';
+import VpnLockIcon from '@mui/icons-material/VpnLock';
+import ShieldIcon from '@mui/icons-material/Shield';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import EditAttributesIcon from '@mui/icons-material/EditAttributes';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import TimerIcon from '@mui/icons-material/Timer';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import CodeIcon from '@mui/icons-material/Code';
+import TuneIcon from '@mui/icons-material/Tune';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import BuildIcon from '@mui/icons-material/Build';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import CellTowerIcon from '@mui/icons-material/CellTower';
 
 export const ICON_REGISTRY: Record<string, React.ElementType> = {
   Dashboard: DashboardIcon,
@@ -43,6 +66,29 @@ export const ICON_REGISTRY: Record<string, React.ElementType> = {
   People: PeopleIcon,
   Lock: LockIcon,
   Description: DescriptionIcon,
+  Label: LabelIcon,
+  Schedule: ScheduleIcon,
+  CallMade: CallMadeIcon,
+  CallReceived: CallReceivedIcon,
+  SwapCalls: SwapCallsIcon,
+  Hub: HubIcon,
+  VpnLock: VpnLockIcon,
+  Shield: ShieldIcon,
+  Assignment: AssignmentIcon,
+  EditAttributes: EditAttributesIcon,
+  AccessTime: AccessTimeIcon,
+  Timer: TimerIcon,
+  VerifiedUser: VerifiedUserIcon,
+  SystemUpdate: SystemUpdateIcon,
+  BugReport: BugReportIcon,
+  Code: CodeIcon,
+  Tune: TuneIcon,
+  Inventory: InventoryIcon,
+  Build: BuildIcon,
+  ShowChart: ShowChartIcon,
+  Receipt: ReceiptIcon,
+  TableChart: TableChartIcon,
+  CellTower: CellTowerIcon,
 };
 
 export function getIcon(

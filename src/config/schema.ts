@@ -13,12 +13,19 @@ const layoutSchema = z.object({
   fontScale: z.number().min(0.8).max(1.4).optional(),
 });
 
+const customMenuItemSchema = z.object({
+  id: z.string(),
+  label: z.string().optional(),
+  icon: z.string().optional(),
+});
+
 const menuSchema = z.object({
   order: z.array(z.string()).optional(),
   hidden: z.array(z.string()).optional(),
   favorites: z.array(z.string()).optional(),
   customLabels: z.record(z.string(), z.string()).optional(),
   customIcons: z.record(z.string(), z.string()).optional(),
+  customItems: z.array(customMenuItemSchema).optional(),
 });
 
 const dashboardWidgetSchema = z.object({

@@ -37,6 +37,17 @@ preset = "relaxed"
 # [menu.customIcons]
 # monitoring = "Analytics"
 
+# Pin specific sub-pages directly to the sidebar
+# [[menu.customItems]]
+# id = "dhcp-static-mappings"
+# label = "Static Maps"  # optional override
+#
+# [[menu.customItems]]
+# id = "terminal"
+#
+# Available page IDs: dhcp-static-mappings, dhcp-leases, terminal,
+# dns-host-overrides, vpn-openvpn, vpn-wireguard, monitoring-logs, etc.
+
 [dashboard]
 # Configure dashboard widget visibility and order
 # [[dashboard.widgets]]
