@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
@@ -30,6 +30,10 @@ import {
   haltSystem,
   systemQueryKeys,
 } from '@/api/modules/system';
+
+const TerminalDiagnosticsTab = lazy(() =>
+  import('@/components/terminal/TerminalDiagnosticsTab').then((m) => ({ default: m.TerminalDiagnosticsTab })),
+);
 
 export function DiagnosticsTab() {
   const queryClient = useQueryClient();
@@ -81,6 +85,17 @@ export function DiagnosticsTab() {
 
   return (
     <Stack spacing={3}>
+      {/* Interactive Terminal */}
+      <Suspense
+        fallback={
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={24} />
+          </Box>
+        }
+      >
+        <TerminalDiagnosticsTab />
+      </Suspense>
+
       {/* Ping Tool */}
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>

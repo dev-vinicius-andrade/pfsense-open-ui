@@ -11,6 +11,7 @@ import { InterfacesPage } from '@/pages/interfaces/InterfacesPage';
 import { InterfaceConfigPage } from '@/pages/interfaces/InterfaceConfigPage';
 import { NatPage } from '@/pages/nat/NatPage';
 import { FirewallRulesPage } from '@/pages/firewall/FirewallRulesPage';
+import { SettingsPage } from '@/pages/settings/SettingsPage';
 
 const isDemo = import.meta.env.VITE_DEMO_MODE === 'true';
 const basename = isDemo ? '/pfsense-open-ui' : '/';
@@ -83,6 +84,11 @@ export const router = createBrowserRouter(
               path: 'monitoring/*',
               element: <MonitoringPage />,
               handle: { breadcrumb: 'Monitoring' },
+            },
+            {
+              path: 'settings',
+              element: <SettingsPage />,
+              handle: { breadcrumb: 'Settings' },
             },
           ],
         },

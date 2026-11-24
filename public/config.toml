@@ -1,0 +1,54 @@
+# pfSense Open UI Configuration
+# Edit this file to customize the UI appearance, layout, and navigation.
+# Changes require a page reload to take effect.
+
+[theme]
+# Color scheme: default-teal, dracula, catppuccin-mocha, catppuccin-latte,
+# tokyo-night, nord, gruvbox-dark, solarized-dark, one-dark-pro, github-dark
+scheme = "default-teal"
+# Theme mode: light, dark, or auto (follows system preference)
+mode = "auto"
+
+[layout]
+# Layout preset: enterprise (dense), relaxed (spacious), or custom
+preset = "relaxed"
+# Custom settings (only used when preset = "custom")
+# sidebarWidth = 260
+# density = "comfortable"
+# fontScale = 1.0
+
+[menu]
+# Reorder sidebar items by listing their IDs in desired order
+# Available: dashboard, firewall, nat, interfaces, vpn, services, system, monitoring
+# order = ["dashboard", "firewall", "interfaces", "vpn", "services", "system", "monitoring"]
+
+# Hide sections you don't use
+# hidden = ["nat"]
+
+# Pin favorite pages to quick-access area at top of sidebar
+# Example: pin DHCP management pages for quick access
+# favorites = ["dashboard", "firewall"]
+
+# Override menu labels
+# [menu.customLabels]
+# monitoring = "Traffic & Logs"
+
+# Override menu icons (MUI icon names)
+# [menu.customIcons]
+# monitoring = "Analytics"
+
+[dashboard]
+# Configure dashboard widget visibility and order
+# [[dashboard.widgets]]
+# id = "system-stats"
+# visible = true
+# order = 1
+
+# [[dashboard.widgets]]
+# id = "gateways"
+# visible = true
+# order = 2
+
+[defaults]
+# Page to show after login
+landingPage = "/dashboard"

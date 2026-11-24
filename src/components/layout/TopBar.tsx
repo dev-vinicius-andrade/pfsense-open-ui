@@ -3,14 +3,23 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import { useState } from 'react';
+import CodeIcon from '@mui/icons-material/Code';
+import { useState, lazy, Suspense } from 'react';
 import { useUiStore } from '@/stores/uiStore';
 import { useAuth } from '@/auth/useAuth';
 
+const TerminalFloatingPanel = lazy(() =>
+ import('@/components/terminal/TerminalFloatingPanel').then((m) => ({ default: m.TerminalFloatingPanel })),
+);
+
+const TERMINAL_PRIVILEGE = 'page-diagnostics-command-prompt';
+
 export function TopBar() {
-  const { toggleSidebar, themeMode, setThemeMode } = useUiStore();
+  const { toggleSidebar, themeMode, setThemeMode, floatingTerminalOpen, toggleFloatingTerminal } = useUiStore();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const hasTerminalPrivilege = user?.privileges.includes(TERMINAL_PRIVILEGE) ?? false;
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -45,6 +54,17 @@ export function TopBar() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Chip label="System OK" size="small" color="success" variant="outlined" />
 
+          {hasTerminalPrivilege && (
+            <IconButton
+              color={floatingTerminalOpen ? 'primary' : 'inherit'}
+              aria-label="toggle floating terminal"
+              onClick={toggleFloatingTerminal}
+              title="Toggle Terminal"
+            >
+              <CodeIcon />
+            </IconButton>
+          )}
+
           <IconButton
             color="inherit"
             aria-label="toggle theme"
@@ -75,6 +95,15 @@ export function TopBar() {
           </Menu>
         </Box>
       </Toolbar>
+
+      {hasTerminalPrivilege && (
+        <Suspense fallback={null}>
+          <TerminalFloatingPanel
+            open={floatingTerminalOpen}
+            onClose={() => useUiStore.getState().setFloatingTerminalOpen(false)}
+          />
+        </Suspense>
+      )}
     </AppBar>
   );
 }

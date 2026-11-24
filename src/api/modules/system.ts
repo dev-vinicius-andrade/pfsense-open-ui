@@ -311,3 +311,7 @@ export async function haltSystem(): Promise<ApiResponse<{ message: string }>> {
 export async function fetchConfigHistory(): Promise<ApiResponse<ConfigRevision[]>> {
   return get<ApiResponse<ConfigRevision[]>>('/diagnostics/config_history/revisions');
 }
+
+export async function executeCommand(command: string): Promise<ApiResponse<{ output: string }>> {
+  return post<ApiResponse<{ output: string }>>('/diagnostics/command_prompt', { command });
+}
