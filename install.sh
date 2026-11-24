@@ -12,7 +12,7 @@
 
 set -e
 
-PORT="${1:-8443}"
+PORT="${1:-8500}"
 INSTALL_DIR="/usr/local/www/pfsense-open-ui"
 NGINX_CONF="/var/etc/nginx-pfsense-open-ui.conf"
 RC_SCRIPT="/usr/local/etc/rc.d/pfsense-open-ui.sh"
