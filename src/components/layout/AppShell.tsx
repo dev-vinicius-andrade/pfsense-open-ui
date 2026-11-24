@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Box, Container } from '@mui/material';
+import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -30,6 +30,8 @@ function useLayoutPresetConfig(): LayoutPresetConfig {
 }
 
 export function AppShell() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const sidebarOpen = useUiStore((state) => state.sidebarOpen);
   const layoutConfig = useConfigStore((state) => state.config.layout);
   const presetConfig = useLayoutPresetConfig();
@@ -38,39 +40,57 @@ export function AppShell() {
   const presetName = layoutConfig.preset ?? 'relaxed';
   const isEnterprise = presetName === 'enterprise';
 
-  // Calculate current sidebar width based on preset and state
-  const currentSidebarWidth = isEnterprise
-    ? (sidebarHovered ? presetConfig.sidebarWidth : presetConfig.sidebarCollapsedWidth)
-    : (sidebarOpen ? presetConfig.sidebarWidth : 0);
+  // On mobile: content always takes full width (sidebar is an overlay)
+  // On desktop: calculate margin based on sidebar state and preset
+  const getContentMargin = () => {
+    if (isMobile) return 0;
+    if (isEnterprise) {
+      return sidebarHovered ? presetConfig.sidebarWidth : presetConfig.sidebarCollapsedWidth;
+    }
+    return sidebarOpen ? presetConfig.sidebarWidth : 0;
+  };
+
+  const contentMargin = getContentMargin();
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <div
-        onMouseEnter={() => {
-          if (isEnterprise) setSidebarHovered(true);
-        }}
-        onMouseLeave={() => {
-          if (isEnterprise) setSidebarHovered(false);
-        }}
-      >
-        <Sidebar />
-      </div>
+      {!isMobile && (
+        <div
+          onMouseEnter={() => {
+            if (isEnterprise) setSidebarHovered(true);
+          }}
+          onMouseLeave={() => {
+            if (isEnterprise) setSidebarHovered(false);
+          }}
+        >
+          <Sidebar />
+        </div>
+      )}
+      {isMobile && <Sidebar />}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          ml: isEnterprise ? `${currentSidebarWidth}px` : (sidebarOpen ? 0 : `-${presetConfig.sidebarWidth}px`),
+          minWidth: 0, // Prevent flex children from overflowing
+          ml: isMobile ? 0 : `${contentMargin}px`,
           transition: 'margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
-          width: isEnterprise
-            ? `calc(100% - ${currentSidebarWidth}px)`
-            : (sidebarOpen ? `calc(100% - ${presetConfig.sidebarWidth}px)` : '100%'),
+          width: isMobile ? '100%' : `calc(100% - ${contentMargin}px)`,
         }}
       >
         <TopBar />
         <DemoBanner />
-        <Container maxWidth={presetConfig.containerMaxWidth} sx={{ py: 3, flexGrow: 1 }}>
+        <Container
+          maxWidth={isMobile ? false : presetConfig.containerMaxWidth}
+          disableGutters={isMobile}
+          sx={{
+            py: isMobile ? 2 : 3,
+            px: isMobile ? 2 : undefined,
+            flexGrow: 1,
+            width: '100%',
+          }}
+        >
           <Breadcrumbs />
           <Outlet />
         </Container>
