@@ -8,9 +8,9 @@ export const MOCK_SYSTEM_STATUS = {
   cpu_usage: 12,
   memory_usage: 34,
   disk_usage: 22,
-  uptime: '14d 6h 32m',
+  uptime: 1_232_000, // seconds (~14d 6h)
   load_average: [0.42, 0.38, 0.35],
-  version: 'pfSense CE 2.9.0-RELEASE',
+  version: '2.9.0-RELEASE',
   platform: 'Netgate SG-3100',
 };
 
@@ -20,10 +20,10 @@ export const MOCK_GATEWAYS = [
 ];
 
 export const MOCK_INTERFACES = [
-  { id: 'wan', name: 'WAN', status: 'up', ipaddr: '203.0.113.42/24', media: '1000baseT <full-duplex>', in_bytes: 1_245_678_900, out_bytes: 876_543_210 },
-  { id: 'lan', name: 'LAN', status: 'up', ipaddr: '192.168.1.1/24', media: '1000baseT <full-duplex>', in_bytes: 987_654_321, out_bytes: 1_123_456_789 },
-  { id: 'opt1', name: 'DMZ', status: 'up', ipaddr: '10.10.10.1/24', media: '1000baseT <full-duplex>', in_bytes: 45_678_900, out_bytes: 34_567_890 },
-  { id: 'opt2', name: 'IOT', status: 'down', ipaddr: '172.16.0.1/24', media: 'autoselect', in_bytes: 0, out_bytes: 0 },
+  { id: 'wan', name: 'WAN', descr: 'WAN', status: 'up', ipaddr: '203.0.113.42/24', media: '1000baseT <full-duplex>', in_bytes: 1_245_678_900, out_bytes: 876_543_210 },
+  { id: 'lan', name: 'LAN', descr: 'LAN', status: 'up', ipaddr: '192.168.1.1/24', media: '1000baseT <full-duplex>', in_bytes: 987_654_321, out_bytes: 1_123_456_789 },
+  { id: 'opt1', name: 'DMZ', descr: 'DMZ', status: 'up', ipaddr: '10.10.10.1/24', media: '1000baseT <full-duplex>', in_bytes: 45_678_900, out_bytes: 34_567_890 },
+  { id: 'opt2', name: 'IOT', descr: 'IOT', status: 'down', ipaddr: '172.16.0.1/24', media: 'autoselect', in_bytes: 0, out_bytes: 0 },
 ];
 
 export const MOCK_SERVICES = [
@@ -75,4 +75,4 @@ export const MOCK_LOGS = Array.from({ length: 50 }, (_, i) => ({
   ][i % 6],
 }));
 
-export const MOCK_STATE_TABLE_SIZE = { count: 247, max: 131072 };
+export const MOCK_STATE_TABLE_SIZE = { count: 247, max: 131072, usage_percent: (247 / 131072) * 100 };

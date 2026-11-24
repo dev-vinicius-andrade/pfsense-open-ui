@@ -156,7 +156,7 @@ function SystemStatsSection() {
               Load Average
             </Typography>
             <Typography variant="h5">
-              {data.load_average.map((v) => v.toFixed(2)).join(' / ')}
+              {(data.load_average ?? []).map((v) => v.toFixed(2)).join(' / ') || '—'}
             </Typography>
           </CardContent>
         </Card>
@@ -210,8 +210,8 @@ function GatewaysSection() {
                     <TableCell>
                       <StatusChip status={gw.status} />
                     </TableCell>
-                    <TableCell align="right">{gw.latency.toFixed(1)}</TableCell>
-                    <TableCell align="right">{gw.loss.toFixed(1)}</TableCell>
+                    <TableCell align="right">{gw.latency?.toFixed(1) ?? '—'}</TableCell>
+                    <TableCell align="right">{gw.loss?.toFixed(1) ?? '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -401,10 +401,10 @@ function VersionAndStatesSection() {
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                   <Typography variant="body2">
-                    {stateQuery.data?.count.toLocaleString()} / {stateQuery.data?.max.toLocaleString()} entries
+                    {(stateQuery.data?.count ?? 0).toLocaleString()} / {(stateQuery.data?.max ?? 0).toLocaleString()} entries
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {stateQuery.data?.usage_percent.toFixed(1)}%
+                    {(stateQuery.data?.usage_percent ?? 0).toFixed(1)}%
                   </Typography>
                 </Box>
                 <LinearProgress
