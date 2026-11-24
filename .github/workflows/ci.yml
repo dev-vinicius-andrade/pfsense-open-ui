@@ -42,6 +42,13 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: cp dist/index.html dist/404.html
 
+      - name: Verify 404.html exists
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          test -f dist/404.html || (echo "ERROR: dist/404.html missing!" && exit 1)
+          echo "404.html size: $(wc -c < dist/404.html) bytes"
+          echo "index.html size: $(wc -c < dist/index.html) bytes"
+
       - name: Upload artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
