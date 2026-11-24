@@ -95,7 +95,10 @@ const LOG_ROUTES: Record<string, () => MockResponse> = {
 
 export async function mockFetch(method: string, url: string): Promise<MockResponse> {
   await delay();
-  const key = `${method.toUpperCase()} ${url.split('?')[0]}`;
+  // Normalize URL: strip query params and ensure /api/v2 prefix for matching
+  const cleanUrl = url.split('?')[0];
+  const normalizedUrl = cleanUrl.startsWith('/api/v2') ? cleanUrl : `/api/v2${cleanUrl}`;
+  const key = `${method.toUpperCase()} ${normalizedUrl}`;
   const handler = ROUTES[key] || LOG_ROUTES[key];
   if (handler) return handler();
   // Default: return empty data for unhandled GET routes
