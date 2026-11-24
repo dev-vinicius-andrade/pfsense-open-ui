@@ -2,11 +2,15 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
+const isDemo = process.env.VITE_DEMO_MODE === 'true';
+
 export default defineConfig({
+  // GitHub Pages serves from /<repo-name>/ subpath
+  base: isDemo ? '/pfsense-open-ui/' : '/',
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   server: {

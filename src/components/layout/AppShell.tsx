@@ -3,6 +3,7 @@ import { Box, Container } from '@mui/material';
 import { Sidebar, DRAWER_WIDTH } from './Sidebar';
 import { TopBar } from './TopBar';
 import { Breadcrumbs } from './Breadcrumbs';
+import { DemoBanner } from '@/components/shared/DemoBanner';
 import { useUiStore } from '@/stores/uiStore';
 
 export function AppShell() {
@@ -23,6 +24,7 @@ export function AppShell() {
         }}
       >
         <TopBar />
+        <DemoBanner />
         <Container maxWidth="xl" sx={{ py: 3, flexGrow: 1 }}>
           <Breadcrumbs />
           <Outlet />
