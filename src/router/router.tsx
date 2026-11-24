@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { LoginPage } from '@/pages/LoginPage';
@@ -24,7 +24,7 @@ export const router = createBrowserRouter(
     },
     {
       path: '/',
-      element: isDemo ? <AppShell /> : <ProtectedRoute />,
+      element: isDemo ? <Outlet /> : <ProtectedRoute />,
       children: [
         {
           element: <AppShell />,
