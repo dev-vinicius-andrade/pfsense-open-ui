@@ -1,6 +1,6 @@
 import { Breadcrumbs as MuiBreadcrumbs, Link, Typography } from '@mui/material';
 import { Link as RouterLink, useMatches } from 'react-router-dom';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 interface RouteMatch {
   handle?: {
@@ -20,7 +20,7 @@ export function Breadcrumbs() {
 
   return (
     <MuiBreadcrumbs
-      separator={<NavigateNextIcon fontSize="small" />}
+      separator={<ChevronRightIcon sx={{ fontSize: 14, opacity: 0.5 }} />}
       aria-label="breadcrumb"
       sx={{ mb: 2 }}
     >
@@ -30,7 +30,11 @@ export function Breadcrumbs() {
 
         if (isLast) {
           return (
-            <Typography key={match.pathname} color="text.primary">
+            <Typography
+              key={match.pathname}
+              variant="body2"
+              color="text.secondary"
+            >
               {label}
             </Typography>
           );
@@ -42,7 +46,8 @@ export function Breadcrumbs() {
             component={RouterLink}
             to={match.pathname}
             underline="hover"
-            color="inherit"
+            color="text.secondary"
+            sx={{ opacity: 0.7, fontSize: '0.8rem' }}
           >
             {label}
           </Link>

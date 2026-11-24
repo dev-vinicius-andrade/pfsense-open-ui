@@ -158,9 +158,16 @@ export function DashboardPage() {
                 return (
                   <Typography
                     key={item.id}
-                    variant="h6"
-                    gutterBottom
-                    sx={{ mt: 2, mb: 1 }}
+                    variant="overline"
+                    sx={{
+                      display: 'block',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      letterSpacing: 1.5,
+                      color: 'text.secondary',
+                      mb: 1.5,
+                      mt: 3,
+                    }}
                   >
                     {item.label}
                   </Typography>
@@ -206,9 +213,16 @@ export function DashboardPage() {
             return (
               <Typography
                 key={item.id}
-                variant="h6"
-                gutterBottom
-                sx={{ mt: item.category === 'system' ? 0 : 2 }}
+                variant="overline"
+                sx={{
+                  display: 'block',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: 1.5,
+                  color: 'text.secondary',
+                  mb: 1.5,
+                  mt: item.category === 'system' ? 0 : 4,
+                }}
               >
                 {item.label}
               </Typography>

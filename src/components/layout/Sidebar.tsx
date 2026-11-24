@@ -210,19 +210,24 @@ function NavEntry({ label, iconKey, isActive, onClick, collapsed }: NavEntryProp
         borderRadius: 2,
         mb: 0.5,
         px: collapsed ? 0 : 1.5,
-        py: collapsed ? 0 : 0.75,
-        minHeight: collapsed ? 40 : 36,
+        py: collapsed ? 0 : 1.25,
+        minHeight: collapsed ? 40 : 40,
         minWidth: collapsed ? 40 : undefined,
         width: collapsed ? 40 : undefined,
         justifyContent: collapsed ? 'center' : 'initial',
-        transition: 'background-color 150ms ease, transform 150ms ease, color 150ms ease',
+        borderLeft: isActive ? '4px solid' : '4px solid transparent',
+        borderColor: isActive ? 'primary.main' : 'transparent',
+        transition: 'background-color 200ms ease, transform 200ms ease, color 200ms ease, border-color 200ms ease, box-shadow 200ms ease',
         '&:hover': {
           backgroundColor: 'action.hover',
-          transform: collapsed ? 'none' : 'scale(1.02)',
+          opacity: 0.92,
+          transform: collapsed ? 'none' : 'scale(1.01)',
         },
         '&.Mui-selected': {
           backgroundColor: 'primary.main',
           color: 'primary.contrastText',
+          boxShadow: (theme) =>
+            `inset 0 0 0 1px ${theme.palette.primary.light}`,
           '&:hover': {
             backgroundColor: 'primary.dark',
           },
@@ -246,7 +251,7 @@ function NavEntry({ label, iconKey, isActive, onClick, collapsed }: NavEntryProp
           mr: collapsed ? 0 : 1.5,
           justifyContent: 'center',
           color: isActive ? 'primary.contrastText' : 'text.secondary',
-          transition: 'color 150ms ease',
+          transition: 'color 200ms ease',
         }}
       >
         <IconComponent fontSize="small" />
@@ -293,23 +298,40 @@ interface SectionLabelProps {
 function SectionLabel({ children, visible }: SectionLabelProps) {
   if (!visible) return null;
   return (
-    <Typography
-      variant="caption"
+    <Box
       sx={{
-        display: 'block',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
         px: 2,
-        py: 0.5,
-        mt: 1,
-        mb: 0.5,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: 1,
-        textTransform: 'uppercase',
-        color: 'text.secondary',
+        mt: 2,
+        mb: 1,
       }}
     >
-      {children}
-    </Typography>
+      <Box
+        sx={{
+          width: 2,
+          height: 12,
+          borderRadius: 1,
+          backgroundColor: 'primary.main',
+          flexShrink: 0,
+        }}
+      />
+      <Typography
+        variant="caption"
+        sx={{
+          fontSize: '0.7rem',
+          fontWeight: 700,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'text.secondary',
+          opacity: 0.7,
+          lineHeight: 1,
+        }}
+      >
+        {children}
+      </Typography>
+    </Box>
   );
 }
 
@@ -370,12 +392,22 @@ export function Sidebar() {
           position: isMobile ? 'fixed' : 'relative',
           transition: 'width 225ms cubic-bezier(0, 0, 0.2, 1)',
           overflowX: 'hidden',
+          background: (theme) =>
+            theme.palette.mode === 'dark'
+              ? `linear-gradient(180deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`
+              : undefined,
           // On mobile temporary drawer, ensure it doesn't exceed viewport
           ...(isMobile ? { maxWidth: '85vw' } : {}),
         },
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between', minHeight: isMobile ? 56 : undefined }}>
+      <Toolbar
+        sx={{
+          justifyContent: 'space-between',
+          minHeight: isMobile ? 56 : undefined,
+          pb: 1,
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
           <SecurityIcon color="primary" />
           {showLabels && (

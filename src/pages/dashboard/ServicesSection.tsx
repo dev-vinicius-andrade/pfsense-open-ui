@@ -67,8 +67,16 @@ export function ServicesSection() {
           <Typography color="text.secondary">No services found.</Typography>
         ) : (
           <List dense disablePadding>
-            {data.map((svc: Service) => (
-              <ListItem key={svc.id} divider>
+            {data.map((svc: Service, index: number) => (
+              <ListItem
+                key={svc.id}
+                divider={index < data.length - 1}
+                sx={{
+                  '&:hover': { bgcolor: 'action.hover' },
+                  transition: 'background-color 0.15s ease',
+                  borderRadius: 1,
+                }}
+              >
                 <ListItemIcon sx={{ minWidth: 36 }}>
                   {svc.status === 'running' ? (
                     <CheckCircleIcon color="success" fontSize="small" />
@@ -77,7 +85,11 @@ export function ServicesSection() {
                   )}
                 </ListItemIcon>
                 <ListItemText
-                  primary={svc.name}
+                  primary={
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {svc.name}
+                    </Typography>
+                  }
                   secondary={svc.description}
                 />
                 <StatusChip status={mapServiceStatus(svc.status)} />

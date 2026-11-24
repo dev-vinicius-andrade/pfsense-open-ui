@@ -42,7 +42,7 @@ export function GatewaysSection() {
         ) : !data || data.length === 0 ? (
           <Typography color="text.secondary">No gateways configured.</Typography>
         ) : (
-          <TableContainer>
+          <TableContainer sx={{ minHeight: 120 }}>
             <Table size="small">
               <TableHead>
                 <TableRow>
@@ -55,8 +55,16 @@ export function GatewaysSection() {
               </TableHead>
               <TableBody>
                 {data.map((gw: Gateway) => (
-                  <TableRow key={gw.name}>
-                    <TableCell>{gw.description || gw.name}</TableCell>
+                  <TableRow
+                    key={gw.name}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      },
+                      transition: 'background-color 0.15s ease',
+                    }}
+                  >
+                    <TableCell sx={{ fontWeight: 500 }}>{gw.description || gw.name}</TableCell>
                     <TableCell>{gw.address}</TableCell>
                     <TableCell>
                       <StatusChip status={gw.status} />

@@ -72,27 +72,37 @@ export function InterfacesSection() {
   }
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={3}>
       {data.map((iface: InterfaceStatus) => (
         <Grid size={{ xs: 12, sm: 6, md: 4 }} key={iface.id}>
           <Card>
-            <CardContent>
+            <CardContent sx={{ p: 2.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'text.primary' }}>
                   {iface.descr || iface.id}
                 </Typography>
                 <StatusChip status={mapInterfaceStatus(iface.status)} />
               </Box>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                 {iface.ipaddr || 'No IP assigned'}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                  In: {formatBytes(iface.in_bytes)}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Out: {formatBytes(iface.out_bytes)}
-                </Typography>
+              <Box sx={{ display: 'flex', gap: 3 }}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 10, letterSpacing: 0.5 }}>
+                    IN
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {formatBytes(iface.in_bytes)}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 10, letterSpacing: 0.5 }}>
+                    OUT
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {formatBytes(iface.out_bytes)}
+                  </Typography>
+                </Box>
               </Box>
             </CardContent>
           </Card>

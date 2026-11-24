@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
+  Box,
   Button,
   Card,
   CardContent,
@@ -39,65 +40,114 @@ export function SystemStatsSection() {
 
   if (isLoading || !data) {
     return (
-      <Grid container spacing={3}>
-        {[1, 2, 3].map((i) => (
-          <Grid size={{ xs: 12, sm: 4 }} key={i}>
-            <Card>
-              <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <Skeleton variant="circular" width={100} height={100} />
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Grid container spacing={3}>
+          {[1, 2, 3].map((i) => (
+            <Grid size={{ xs: 12, sm: 4 }} key={i}>
+              <Card>
+                <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <Skeleton variant="circular" width={100} height={100} />
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+        <Grid container spacing={3}>
+          {[1, 2].map((i) => (
+            <Grid size={{ xs: 12, sm: 6 }} key={i}>
+              <Card>
+                <CardContent>
+                  <Skeleton variant="text" width="40%" />
+                  <Skeleton variant="text" width="60%" />
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
     );
   }
 
   return (
-    <Grid container spacing={3}>
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <Card>
-          <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-            <GaugeChart value={data.cpu_usage} label="CPU Usage" />
-          </CardContent>
-        </Card>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Resource Usage Gauges */}
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <Card>
+            <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <GaugeChart value={data.cpu_usage} label="CPU Usage" />
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <Card>
+            <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <GaugeChart value={data.memory_usage} label="Memory Usage" />
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <Card>
+            <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <GaugeChart value={data.disk_usage} label="Disk Usage" />
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <Card>
-          <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-            <GaugeChart value={data.memory_usage} label="Memory Usage" />
-          </CardContent>
-        </Card>
+
+      {/* System Info Row */}
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Card>
+            <CardContent sx={{ py: 2.5 }}>
+              <Typography
+                variant="overline"
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: 1.2,
+                  color: 'text.secondary',
+                  mb: 0.5,
+                  display: 'block',
+                }}
+              >
+                Uptime
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 700, color: 'text.primary' }}
+              >
+                {formatUptime(data.uptime)}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Card>
+            <CardContent sx={{ py: 2.5 }}>
+              <Typography
+                variant="overline"
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: 1.2,
+                  color: 'text.secondary',
+                  mb: 0.5,
+                  display: 'block',
+                }}
+              >
+                Load Average
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 700, color: 'text.primary' }}
+              >
+                {(data.load_average ?? []).map((v) => v.toFixed(2)).join(' / ') || '—'}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <Card>
-          <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-            <GaugeChart value={data.disk_usage} label="Disk Usage" />
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <Card>
-          <CardContent>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Uptime
-            </Typography>
-            <Typography variant="h5">{formatUptime(data.uptime)}</Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <Card>
-          <CardContent>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Load Average
-            </Typography>
-            <Typography variant="h5">
-              {(data.load_average ?? []).map((v) => v.toFixed(2)).join(' / ') || '—'}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
+    </Box>
   );
 }

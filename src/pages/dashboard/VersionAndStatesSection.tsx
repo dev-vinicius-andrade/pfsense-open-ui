@@ -29,8 +29,11 @@ export function VersionAndStatesSection() {
     <Grid container spacing={3}>
       <Grid size={{ xs: 12, sm: 6 }}>
         <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
+          <CardContent sx={{ p: 2.5 }}>
+            <Typography
+              variant="overline"
+              sx={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, color: 'text.secondary', mb: 1, display: 'block' }}
+            >
               System Version
             </Typography>
             {versionQuery.isLoading ? (
@@ -39,7 +42,7 @@ export function VersionAndStatesSection() {
               <Typography color="error">Failed to load version info.</Typography>
             ) : (
               <>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
                   pfSense CE {versionQuery.data?.version}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -55,8 +58,11 @@ export function VersionAndStatesSection() {
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
         <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
+          <CardContent sx={{ p: 2.5 }}>
+            <Typography
+              variant="overline"
+              sx={{ fontSize: 11, fontWeight: 600, letterSpacing: 1.2, color: 'text.secondary', mb: 1, display: 'block' }}
+            >
               State Table
             </Typography>
             {stateQuery.isLoading ? (

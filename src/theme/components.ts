@@ -14,12 +14,16 @@ export const components: Components<Theme> = {
   },
   MuiCard: {
     styleOverrides: {
-      root: {
-        borderRadius: 8,
+      root: ({ theme }) => ({
+        borderRadius: 12,
         border: '1px solid',
-        borderColor: 'divider',
+        borderColor: theme.palette.divider,
         backgroundImage: 'none',
-      },
+        boxShadow: theme.palette.mode === 'dark'
+          ? '0 2px 8px rgba(0,0,0,0.4)'
+          : '0 1px 3px rgba(0,0,0,0.08)',
+        transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+      }),
     },
     defaultProps: {
       variant: 'outlined',
@@ -56,6 +60,7 @@ export const components: Components<Theme> = {
         borderRadius: 6,
         marginBlock: 2,
         marginInline: 8,
+        transition: 'background-color 200ms ease, transform 200ms ease, color 200ms ease',
         '&.Mui-selected': {
           fontWeight: 600,
         },
@@ -73,6 +78,22 @@ export const components: Components<Theme> = {
     defaultProps: {
       maxWidth: 'sm',
       fullWidth: true,
+    },
+  },
+  MuiPaper: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        border: '1px solid',
+        borderColor: theme.palette.divider,
+        backgroundImage: 'none',
+      }),
+    },
+  },
+  MuiTypography: {
+    styleOverrides: {
+      subtitle2: ({ theme }) => ({
+        color: theme.palette.text.secondary,
+      }),
     },
   },
 };

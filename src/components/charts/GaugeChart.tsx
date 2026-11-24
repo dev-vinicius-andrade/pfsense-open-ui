@@ -1,21 +1,44 @@
+import { useTheme, type Theme } from '@mui/material/styles';
 import { Box, CircularProgress, Typography } from '@mui/material';
+
+interface ThresholdStop {
+  value: number;
+  color: 'success' | 'warning' | 'error' | 'primary' | 'secondary' | 'info';
+}
 
 interface GaugeChartProps {
   value: number;
   label: string;
   size?: number;
   thickness?: number;
+  thresholds?: ThresholdStop[];
 }
 
-function getColor(value: number): string {
-  if (value >= 90) return '#D32F2F';
-  if (value >= 75) return '#FFA000';
-  return '#00897B';
+const DEFAULT_THRESHOLDS: ThresholdStop[] = [
+  { value: 60, color: 'success' },
+  { value: 80, color: 'warning' },
+  { value: 100, color: 'error' },
+];
+
+function resolveThresholdColor(
+  value: number,
+  thresholds: ThresholdStop[],
+  palette: Theme['palette'],
+): string {
+  const sorted = [...thresholds].sort((a, b) => a.value - b.value);
+  for (const stop of sorted) {
+    if (value <= stop.value) {
+      return palette[stop.color]?.main ?? palette.primary.main;
+    }
+  }
+  return palette.primary.main;
 }
 
-export function GaugeChart({ value, label, size = 100, thickness = 8 }: GaugeChartProps) {
+export function GaugeChart({ value, label, size = 100, thickness = 8, thresholds }: GaugeChartProps) {
+  const theme = useTheme();
   const clampedValue = Math.min(100, Math.max(0, value));
-  const color = getColor(clampedValue);
+  const activeThresholds = thresholds ?? DEFAULT_THRESHOLDS;
+  const color = resolveThresholdColor(clampedValue, activeThresholds, theme.palette);
 
   return (
     <Box
