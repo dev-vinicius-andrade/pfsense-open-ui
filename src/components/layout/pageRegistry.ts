@@ -44,7 +44,7 @@ export const PAGE_REGISTRY: PageEntry[] = [
 
   // Services sub-pages
   { id: 'dhcp-server', label: 'DHCP Server', path: '/services/dhcp', icon: 'Router', category: 'services', isTopLevel: false },
-  { id: 'dhcp-static-mappings', label: 'DHCP Static Mappings', path: '/services/dhcp/static', icon: 'Assignment', category: 'services', isTopLevel: false },
+  { id: 'dhcp-static-mappings', label: 'DHCP Static Mappings', path: '/services/dhcp-static-mappings', icon: 'Assignment', category: 'services', isTopLevel: false },
   { id: 'dhcp-leases', label: 'DHCP Leases', path: '/services/dhcp-leases', icon: 'ListAlt', category: 'services', isTopLevel: false },
   { id: 'dns-resolver', label: 'DNS Resolver', path: '/services/dns', icon: 'Dns', category: 'services', isTopLevel: false },
   { id: 'dns-host-overrides', label: 'DNS Host Overrides', path: '/services/dns/overrides', icon: 'EditAttributes', category: 'services', isTopLevel: false },

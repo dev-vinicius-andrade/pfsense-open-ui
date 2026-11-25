@@ -106,7 +106,18 @@ const ROUTES: Record<string, () => MockResponse> = {
   'GET /api/v2/diagnostics/arp_table': () => ({ data: MOCK_ARP_ENTRIES }),
     // Services
   'GET /api/v2/services/dhcp_servers': () => ({ data: [] }),
-  'GET /api/v2/services/dhcp_server/static_mappings': () => ({ data: [] }),
+  'GET /api/v2/services/dhcp_server/static_mappings': () => ({
+    data: [
+      { id: 1, mac_address: '00:1A:2B:3C:4D:5E', ip_address: '192.168.1.10', hostname: 'gateway-printer', description: 'Office printer', interface: 'lan' },
+      { id: 2, mac_address: 'AA:BB:CC:DD:EE:01', ip_address: '192.168.1.20', hostname: 'nas-server', description: 'NAS storage', interface: 'lan' },
+      { id: 3, mac_address: 'AA:BB:CC:DD:EE:02', ip_address: '192.168.1.30', hostname: 'dev-workstation', description: 'Developer workstation', interface: 'lan' },
+      { id: 4, mac_address: '11:22:33:44:55:66', ip_address: '10.10.10.10', hostname: 'web-server', description: 'Public web server', interface: 'dmz' },
+      { id: 5, mac_address: '11:22:33:44:55:77', ip_address: '10.10.10.20', hostname: 'mail-server', description: 'Mail relay', interface: 'dmz' },
+      { id: 6, mac_address: 'DE:AD:BE:EF:00:01', ip_address: '172.16.0.10', hostname: 'smart-thermostat', description: 'IoT thermostat', interface: 'iot' },
+      { id: 7, mac_address: 'DE:AD:BE:EF:00:02', ip_address: '172.16.0.20', hostname: 'security-camera', description: 'Front door camera', interface: 'iot' },
+      { id: 8, mac_address: 'DE:AD:BE:EF:00:03', ip_address: '172.16.0.30', hostname: 'smart-lock', description: 'Main entrance lock', interface: 'iot' },
+    ],
+  }),
   'GET /api/v2/status/dhcp_server/leases': () => ({ data: MOCK_DHCP_LEASES }),
   'GET /api/v2/services/dns_resolver/settings': () => ({ data: {} }),
   'GET /api/v2/services/dns_resolver/host_overrides': () => ({ data: [] }),

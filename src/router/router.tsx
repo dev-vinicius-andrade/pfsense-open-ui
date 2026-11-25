@@ -20,6 +20,7 @@ import { SchedulesPage } from '@/pages/firewall/SchedulesPage';
 import { FirewallAdvancedSettingsPage } from '@/pages/firewall/FirewallAdvancedSettingsPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { DhcpLeasesPage } from '@/pages/services/DhcpLeasesPage';
+import { DhcpStaticMappingsPage } from '@/pages/services/DhcpStaticMappingsPage';
 import { ArpTablePage } from '@/pages/system/ArpTablePage';
 
 const isDemo = import.meta.env.VITE_DEMO_MODE === 'true';
@@ -125,6 +126,11 @@ export const router = createBrowserRouter(
               path: 'services/dhcp-leases',
               element: <DhcpLeasesPage />,
               handle: { breadcrumb: 'DHCP Leases' },
+            },
+            {
+              path: 'services/dhcp-static-mappings',
+              element: <DhcpStaticMappingsPage />,
+              handle: { breadcrumb: 'DHCP Static Mappings' },
             },
             {
               path: 'services/*',
