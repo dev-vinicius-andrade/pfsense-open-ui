@@ -17,6 +17,10 @@ preset = "relaxed"
 # density = "comfortable"
 # fontScale = 1.0
 
+# Tab position: top, bottom, left, or right
+# Controls how tabs are oriented across all pages
+# tabOrientation = "top"
+
 [menu]
 # Reorder sidebar items by listing their IDs in desired order
 # Available: dashboard, firewall, nat, interfaces, vpn, services, system, monitoring

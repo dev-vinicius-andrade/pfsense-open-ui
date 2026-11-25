@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box } from '@mui/material';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { ConfigurableTabs } from '@/components/shared/ConfigurableTabs';
 import { GeneralSetupTab } from './GeneralSetupTab';
 import { UsersTab } from './UsersTab';
 import { CertificatesTab } from './CertificatesTab';
@@ -10,16 +11,26 @@ import { TunablesTab } from './TunablesTab';
 import { DiagnosticsTab } from './DiagnosticsTab';
 
 const TABS = [
-  { label: 'General Setup', value: 'general' },
-  { label: 'Users & Groups', value: 'users' },
-  { label: 'Certificates', value: 'certificates' },
-  { label: 'Firmware', value: 'firmware' },
-  { label: 'Packages', value: 'packages' },
-  { label: 'Tunables', value: 'tunables' },
-  { label: 'Diagnostics', value: 'diagnostics' },
+  { id: 'general', label: 'General Setup' },
+  { id: 'users', label: 'Users & Groups' },
+  { id: 'certificates', label: 'Certificates' },
+  { id: 'firmware', label: 'Firmware' },
+  { id: 'packages', label: 'Packages' },
+  { id: 'tunables', label: 'Tunables' },
+  { id: 'diagnostics', label: 'Diagnostics' },
 ] as const;
 
-type TabValue = (typeof TABS)[number]['value'];
+type TabValue = (typeof TABS)[number]['id'];
+
+const TAB_CONTENT: Record<TabValue, React.ReactNode> = {
+  general: <GeneralSetupTab />,
+  users: <UsersTab />,
+  certificates: <CertificatesTab />,
+  firmware: <FirmwareTab />,
+  packages: <PackagesTab />,
+  tunables: <TunablesTab />,
+  diagnostics: <DiagnosticsTab />,
+};
 
 export function SystemPage() {
   const [activeTab, setActiveTab] = useState<TabValue>('general');
@@ -28,25 +39,14 @@ export function SystemPage() {
     <Box>
       <PageHeader title="System Administration" />
 
-      <Tabs
-        value={activeTab}
-        onChange={(_e, value: TabValue) => setActiveTab(value)}
-        variant="scrollable"
-        scrollButtons="auto"
-        sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+      <ConfigurableTabs
+        tabs={TABS}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as TabValue)}
+        ariaLabel="System administration tabs"
       >
-        {TABS.map((tab) => (
-          <Tab key={tab.value} label={tab.label} value={tab.value} />
-        ))}
-      </Tabs>
-
-      {activeTab === 'general' && <GeneralSetupTab />}
-      {activeTab === 'users' && <UsersTab />}
-      {activeTab === 'certificates' && <CertificatesTab />}
-      {activeTab === 'firmware' && <FirmwareTab />}
-      {activeTab === 'packages' && <PackagesTab />}
-      {activeTab === 'tunables' && <TunablesTab />}
-      {activeTab === 'diagnostics' && <DiagnosticsTab />}
+        {TAB_CONTENT[activeTab]}
+      </ConfigurableTabs>
     </Box>
   );
 }

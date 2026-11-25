@@ -11,6 +11,7 @@ const layoutSchema = z.object({
   sidebarWidth: z.number().min(200).max(400).optional(),
   density: z.enum(['compact', 'comfortable']).optional(),
   fontScale: z.number().min(0.8).max(1.4).optional(),
+  tabOrientation: z.enum(['top', 'bottom', 'left', 'right']).default('top'),
 });
 
 const customMenuItemSchema = z.object({
@@ -96,7 +97,7 @@ const defaultsSchema = z.object({
 
 export const configSchema = z.object({
   theme: themeSchema.default(() => ({ scheme: 'default-teal', mode: 'auto' as const })),
-  layout: layoutSchema.default(() => ({ preset: 'relaxed' as const })),
+  layout: layoutSchema.default(() => ({ preset: 'relaxed' as const, tabOrientation: 'top' as const })),
   menu: menuSchema.default(() => ({})),
   dashboard: dashboardSchema.default(() => ({})),
   defaults: defaultsSchema.default(() => ({ landingPage: '/dashboard' })),

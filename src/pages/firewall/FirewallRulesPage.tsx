@@ -12,14 +12,12 @@ import {
   Paper,
   Skeleton,
   Switch,
-  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Tabs,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -47,6 +45,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { ConfigurableTabs } from '@/components/shared/ConfigurableTabs';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PendingChangesBanner } from '@/components/shared/PendingChangesBanner';
 import { useApplyChanges } from '@/hooks/useApplyChanges';
@@ -512,42 +511,18 @@ export function FirewallRulesPage() {
       />
 
       {/* Interface Tabs */}
-      <Paper sx={{ mb: 2 }}>
-        {interfacesLoading ? (
-          <Box sx={{ p: 1, display: 'flex', gap: 1 }}>
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} width={80} height={36} />
-            ))}
-          </Box>
-        ) : (
-          <Tabs
-            value={activeTabKey}
-            onChange={handleTabChange}
-            indicatorColor="primary"
-            textColor="primary"
-            variant="scrollable"
-            scrollButtons="auto"
-            aria-label="Firewall rules by interface"
-          >
-            {tabs.map((tab) => (
-              <Tab
-                key={tab.key}
-                value={tab.key}
-                label={tab.label}
-                id={`firewall-tab-${tab.key}`}
-                aria-controls={`firewall-tabpanel-${tab.key}`}
-              />
-            ))}
-          </Tabs>
-        )}
-      </Paper>
-
-      {/* Tab Panel Content */}
-      {!interfacesLoading && tabs.length > 0 && (
-        <Box
-          role="tabpanel"
-          id={`firewall-tabpanel-${activeTabKey}`}
-          aria-labelledby={`firewall-tab-${activeTabKey}`}
+      {interfacesLoading ? (
+        <Paper sx={{ mb: 2, p: 1, display: 'flex', gap: 1 }}>
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} width={80} height={36} />
+          ))}
+        </Paper>
+      ) : (
+        <ConfigurableTabs
+          tabs={tabs.map((t) => ({ id: t.key, label: t.label }))}
+          activeTab={activeTabKey}
+          onTabChange={(tabId) => handleTabChange({} as React.SyntheticEvent, tabId)}
+          ariaLabel="Firewall rules by interface"
         >
           <RuleTable
             rules={filteredRules}
@@ -561,7 +536,7 @@ export function FirewallRulesPage() {
             sensors={sensors}
             onDragEnd={handleDragEnd}
           />
-        </Box>
+        </ConfigurableTabs>
       )}
 
       {/* Create / Edit Dialog */}

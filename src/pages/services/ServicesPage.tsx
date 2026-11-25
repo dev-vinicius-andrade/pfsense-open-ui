@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box } from '@mui/material';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { ConfigurableTabs } from '@/components/shared/ConfigurableTabs';
 import { DhcpServerTab } from './DhcpServerTab';
 import { DnsResolverTab } from './DnsResolverTab';
 import { DnsForwarderTab } from './DnsForwarderTab';
@@ -8,33 +9,41 @@ import { NtpTab } from './NtpTab';
 import { SshTab } from './SshTab';
 import { CronJobsTab } from './CronJobsTab';
 
-const TAB_LABELS = ['DHCP Server', 'DNS Resolver', 'DNS Forwarder', 'NTP', 'SSH', 'Cron Jobs'] as const;
+const SERVICE_TABS = [
+  { id: 'dhcp', label: 'DHCP Server' },
+  { id: 'dns-resolver', label: 'DNS Resolver' },
+  { id: 'dns-forwarder', label: 'DNS Forwarder' },
+  { id: 'ntp', label: 'NTP' },
+  { id: 'ssh', label: 'SSH' },
+  { id: 'cron', label: 'Cron Jobs' },
+] as const;
+
+type ServiceTabId = (typeof SERVICE_TABS)[number]['id'];
+
+const TAB_CONTENT: Record<ServiceTabId, React.ReactNode> = {
+  dhcp: <DhcpServerTab />,
+  'dns-resolver': <DnsResolverTab />,
+  'dns-forwarder': <DnsForwarderTab />,
+  ntp: <NtpTab />,
+  ssh: <SshTab />,
+  cron: <CronJobsTab />,
+};
 
 export function ServicesPage() {
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState<ServiceTabId>('dhcp');
 
   return (
     <Box>
       <PageHeader title="Services" />
 
-      <Tabs
-        value={activeTab}
-        onChange={(_e, newValue: number) => setActiveTab(newValue)}
-        variant="scrollable"
-        scrollButtons="auto"
-        sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+      <ConfigurableTabs
+        tabs={SERVICE_TABS}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as ServiceTabId)}
+        ariaLabel="Service configuration tabs"
       >
-        {TAB_LABELS.map((label) => (
-          <Tab key={label} label={label} />
-        ))}
-      </Tabs>
-
-      {activeTab === 0 && <DhcpServerTab />}
-      {activeTab === 1 && <DnsResolverTab />}
-      {activeTab === 2 && <DnsForwarderTab />}
-      {activeTab === 3 && <NtpTab />}
-      {activeTab === 4 && <SshTab />}
-      {activeTab === 5 && <CronJobsTab />}
+        {TAB_CONTENT[activeTab]}
+      </ConfigurableTabs>
     </Box>
   );
 }
