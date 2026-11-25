@@ -388,8 +388,13 @@ export function Sidebar() {
         flexShrink: 0,
         '& .MuiDrawer-paper': {
           width: currentWidth,
+          height: '100vh',
           boxSizing: 'border-box',
           position: isMobile ? 'fixed' : 'relative',
+          top: 0,
+          left: 0,
+          margin: 0,
+          borderRight: 'none',
           transition: 'width 225ms cubic-bezier(0, 0, 0.2, 1)',
           overflowX: 'hidden',
           background: (theme) =>

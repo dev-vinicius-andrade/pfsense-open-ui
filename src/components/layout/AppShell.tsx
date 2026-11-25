@@ -53,9 +53,17 @@ export function AppShell() {
   const contentMargin = getContentMargin();
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
+      {/* Sidebar wrapper: stretches full height, no gap */}
       {!isMobile && (
-        <div
+        <Box
+          sx={{
+            flexShrink: 0,
+            height: '100vh',
+            position: 'sticky',
+            top: 0,
+            overflow: 'hidden',
+          }}
           onMouseEnter={() => {
             if (isEnterprise) setSidebarHovered(true);
           }}
@@ -64,19 +72,23 @@ export function AppShell() {
           }}
         >
           <Sidebar />
-        </div>
+        </Box>
       )}
       {isMobile && <Sidebar />}
+
+      {/* Main content area: flush against sidebar, no margin gap */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          minWidth: 0, // Prevent flex children from overflowing
+          minWidth: 0,
           ml: isMobile ? 0 : `${contentMargin}px`,
           transition: 'margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
           width: isMobile ? '100%' : `calc(100% - ${contentMargin}px)`,
+          minHeight: '100vh',
+          overflowY: 'auto',
         }}
       >
         <TopBar />
