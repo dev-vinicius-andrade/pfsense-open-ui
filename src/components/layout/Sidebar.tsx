@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Drawer,
@@ -23,31 +23,9 @@ import { useConfigStore } from '@/stores/configStore';
 import { DEFAULT_NAV_ITEMS } from './navConfig';
 import { getIcon } from './iconRegistry';
 import { getPageById } from './pageRegistry';
-import { PRESETS, type LayoutPresetConfig } from '@/theme/presets';
+import { PRESETS } from '@/theme/presets';
 
 export const DRAWER_WIDTH = 260;
-
-/**
- * Resolve the active layout preset config from the store.
- */
-function useLayoutPresetConfig(): LayoutPresetConfig {
-  const layoutConfig = useConfigStore((state) => state.config.layout);
-  return useMemo(() => {
-    const presetName = layoutConfig.preset ?? 'relaxed';
-    const base = PRESETS[presetName] ?? PRESETS.relaxed;
-
-    if (presetName === 'custom') {
-      return {
-        ...base,
-        ...(layoutConfig.sidebarWidth != null ? { sidebarWidth: layoutConfig.sidebarWidth } : {}),
-        ...(layoutConfig.density != null ? { density: layoutConfig.density } : {}),
-        ...(layoutConfig.fontScale != null ? { fontScale: layoutConfig.fontScale } : {}),
-      };
-    }
-
-    return base;
-  }, [layoutConfig]);
-}
 
 /**
  * Returns the current sidebar widths based on the active layout preset.
@@ -335,81 +313,28 @@ function SectionLabel({ children, visible }: SectionLabelProps) {
   );
 }
 
-export function Sidebar() {
+/**
+ * SidebarContent renders the actual navigation content.
+ * Used directly in AppShell for desktop (no Drawer wrapper)
+ * and inside a Drawer for mobile overlay.
+ */
+export function SidebarContent({ showLabels, onNavigate, collapsed }: {
+  showLabels: boolean;
+  onNavigate: (path: string) => void;
+  collapsed: boolean;
+}) {
   const location = useLocation();
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const sidebarOpen = useUiStore((state) => state.sidebarOpen);
-  const toggleSidebar = useUiStore((state) => state.toggleSidebar);
-  const layoutConfig = useConfigStore((state) => state.config.layout);
-  const presetConfig = useLayoutPresetConfig();
 
   const resolvedNavItems = useResolvedNavItems();
   const favoriteItems = useFavoriteNavItems();
   const customItems = useCustomSidebarItems();
 
-  const presetName = layoutConfig.preset ?? 'relaxed';
-  const isEnterprise = presetName === 'enterprise';
-  const [hovered, setHovered] = useState(false);
-
-  // On mobile: always show full-width overlay with labels
-  // On desktop enterprise: collapsed by default, expand on hover
-  // On desktop other modes: use toggle behavior
-  const showLabels = isMobile ? true : (isEnterprise ? hovered : sidebarOpen);
-
-  const currentWidth = isMobile
-    ? Math.min(DRAWER_WIDTH, typeof window !== 'undefined' ? window.innerWidth * 0.85 : DRAWER_WIDTH)
-    : isEnterprise
-      ? (hovered ? presetConfig.sidebarWidth : presetConfig.sidebarCollapsedWidth)
-      : (sidebarOpen ? presetConfig.sidebarWidth : 0);
-
-  const variant = isMobile ? 'temporary' : 'persistent';
-
-  const handleNavigate = (path: string) => {
-    navigate(path);
-    if (isMobile) toggleSidebar();
-  };
-
   return (
-    <Drawer
-      variant={variant}
-      open={isMobile ? sidebarOpen : true}
-      onClose={toggleSidebar}
-      ModalProps={{ keepMounted: true }}
-      onMouseEnter={() => {
-        if (isEnterprise && !isMobile) setHovered(true);
-      }}
-      onMouseLeave={() => {
-        if (isEnterprise && !isMobile) setHovered(false);
-      }}
-      sx={{
-        width: isMobile ? undefined : currentWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: currentWidth,
-          height: '100vh',
-          boxSizing: 'border-box',
-          position: isMobile ? 'fixed' : 'relative',
-          top: 0,
-          left: 0,
-          margin: 0,
-          borderRight: 'none',
-          transition: 'width 225ms cubic-bezier(0, 0, 0.2, 1)',
-          overflowX: 'hidden',
-          background: (theme) =>
-            theme.palette.mode === 'dark'
-              ? `linear-gradient(180deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`
-              : undefined,
-          // On mobile temporary drawer, ensure it doesn't exceed viewport
-          ...(isMobile ? { maxWidth: '85vw' } : {}),
-        },
-      }}
-    >
+    <>
       <Toolbar
         sx={{
           justifyContent: 'space-between',
-          minHeight: isMobile ? 56 : undefined,
+          minHeight: 56,
           pb: 1,
         }}
       >
@@ -421,12 +346,6 @@ export function Sidebar() {
             </Typography>
           )}
         </Box>
-        {/* Close button: always visible on mobile, visible on desktop only in relaxed/custom mode */}
-        {(isMobile || (!isEnterprise && showLabels)) && (
-          <IconButton size="small" onClick={toggleSidebar} aria-label="close sidebar">
-            <MenuOpenIcon />
-          </IconButton>
-        )}
       </Toolbar>
       <Divider />
 
@@ -441,8 +360,8 @@ export function Sidebar() {
                 label={item.label}
                 iconKey={item.iconKey}
                 isActive={location.pathname.startsWith(item.path)}
-                onClick={() => handleNavigate(item.path)}
-                collapsed={!showLabels}
+                onClick={() => onNavigate(item.path)}
+                collapsed={collapsed}
               />
             ))}
           </List>
@@ -461,8 +380,8 @@ export function Sidebar() {
                 label={item.label}
                 iconKey={item.iconKey}
                 isActive={location.pathname.startsWith(item.path)}
-                onClick={() => handleNavigate(item.path)}
-                collapsed={!showLabels}
+                onClick={() => onNavigate(item.path)}
+                collapsed={collapsed}
               />
             ))}
           </List>
@@ -479,11 +398,58 @@ export function Sidebar() {
             label={item.label}
             iconKey={item.iconKey}
             isActive={location.pathname.startsWith(item.path)}
-            onClick={() => handleNavigate(item.path)}
-            collapsed={!showLabels}
+            onClick={() => onNavigate(item.path)}
+            collapsed={collapsed}
           />
         ))}
       </List>
+    </>
+  );
+}
+
+/**
+ * Sidebar component.
+ * On desktop: renders nothing (AppShell uses SidebarContent directly).
+ * On mobile: renders a temporary Drawer overlay.
+ */
+export function Sidebar() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const sidebarOpen = useUiStore((state) => state.sidebarOpen);
+  const toggleSidebar = useUiStore((state) => state.toggleSidebar);
+  const navigate = useNavigate();
+
+  if (!isMobile) {
+    // Desktop: AppShell handles rendering via SidebarContent directly
+    return null;
+  }
+
+  // Mobile: temporary overlay drawer
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    toggleSidebar();
+  };
+
+  return (
+    <Drawer
+      variant="temporary"
+      open={sidebarOpen}
+      onClose={toggleSidebar}
+      ModalProps={{ keepMounted: true }}
+      sx={{
+        '& .MuiDrawer-paper': {
+          width: Math.min(DRAWER_WIDTH, window.innerWidth * 0.85),
+          maxWidth: '85vw',
+          boxSizing: 'border-box',
+        },
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 0.5 }}>
+        <IconButton size="small" onClick={toggleSidebar} aria-label="close sidebar">
+          <MenuOpenIcon />
+        </IconButton>
+      </Box>
+      <SidebarContent showLabels={true} onNavigate={handleNavigate} collapsed={false} />
     </Drawer>
   );
 }

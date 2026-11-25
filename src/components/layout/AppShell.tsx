@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
-import { Sidebar } from './Sidebar';
+import { Sidebar, SidebarContent } from './Sidebar';
 import { TopBar } from './TopBar';
 import { Breadcrumbs } from './Breadcrumbs';
 import { DemoBanner } from '@/components/shared/DemoBanner';
@@ -33,36 +33,53 @@ export function AppShell() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const sidebarOpen = useUiStore((state) => state.sidebarOpen);
+  const toggleSidebar = useUiStore((state) => state.toggleSidebar);
   const layoutConfig = useConfigStore((state) => state.config.layout);
   const presetConfig = useLayoutPresetConfig();
   const [sidebarHovered, setSidebarHovered] = useState(false);
+  const navigate = useNavigate();
 
   const presetName = layoutConfig.preset ?? 'relaxed';
   const isEnterprise = presetName === 'enterprise';
 
-  // On mobile: content always takes full width (sidebar is an overlay)
-  // On desktop: calculate margin based on sidebar state and preset
-  const getContentMargin = () => {
-    if (isMobile) return 0;
+  // Calculate sidebar width based on preset and state
+  const getSidebarWidth = () => {
+    if (isMobile) return 0; // Mobile uses overlay, no width reserved
     if (isEnterprise) {
       return sidebarHovered ? presetConfig.sidebarWidth : presetConfig.sidebarCollapsedWidth;
     }
     return sidebarOpen ? presetConfig.sidebarWidth : 0;
   };
 
-  const contentMargin = getContentMargin();
+  const sidebarWidth = getSidebarWidth();
+  const showLabels = isMobile ? true : (isEnterprise ? sidebarHovered : sidebarOpen);
+  const collapsed = !showLabels;
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    if (isMobile) toggleSidebar();
+  };
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
-      {/* Sidebar wrapper: stretches full height, no gap */}
+      {/* Desktop sidebar: rendered directly as a flex child, no Drawer wrapper */}
       {!isMobile && (
         <Box
           sx={{
+            width: sidebarWidth,
             flexShrink: 0,
             height: '100vh',
             position: 'sticky',
             top: 0,
-            overflow: 'hidden',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            transition: 'width 225ms cubic-bezier(0, 0, 0.2, 1)',
+            borderRight: '1px solid',
+            borderColor: 'divider',
+            background: (t) =>
+              t.palette.mode === 'dark'
+                ? `linear-gradient(180deg, ${t.palette.background.paper} 0%, ${t.palette.background.default} 100%)`
+                : t.palette.background.paper,
           }}
           onMouseEnter={() => {
             if (isEnterprise) setSidebarHovered(true);
@@ -71,12 +88,14 @@ export function AppShell() {
             if (isEnterprise) setSidebarHovered(false);
           }}
         >
-          <Sidebar />
+          <SidebarContent showLabels={showLabels} onNavigate={handleNavigate} collapsed={collapsed} />
         </Box>
       )}
+
+      {/* Mobile sidebar: temporary overlay Drawer */}
       {isMobile && <Sidebar />}
 
-      {/* Main content area: flush against sidebar, no margin gap */}
+      {/* Main content area */}
       <Box
         component="main"
         sx={{
@@ -84,9 +103,6 @@ export function AppShell() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          ml: isMobile ? 0 : `${contentMargin}px`,
-          transition: 'margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
-          width: isMobile ? '100%' : `calc(100% - ${contentMargin}px)`,
           minHeight: '100vh',
           overflowY: 'auto',
         }}
