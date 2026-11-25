@@ -54,7 +54,16 @@ const ROUTES: Record<string, () => MockResponse> = {
   }),
   'GET /api/v2/firewall/nat/outbound/mode': () => ({ data: { mode: 'automatic' } }),
   // Interfaces
-  'GET /api/v2/interfaces': () => ({ data: MOCK_INTERFACES }),
+  'GET /api/v2/interfaces': () => ({
+    data: {
+      items: [
+        { id: 'wan', if: 'em0', descr: 'WAN', enable: true, ipv4_type: 'dhcp', ipv6_type: 'none', blockpriv: false, blockbogons: true, status: 'up' },
+        { id: 'lan', if: 'em1', descr: 'LAN', enable: true, ipv4_type: 'static', ipv4_address: '192.168.1.1', ipv4_subnet: 24, ipv6_type: 'none', blockpriv: true, blockbogons: false, status: 'up' },
+        { id: 'opt1', if: 'em2', descr: 'DMZ', enable: true, ipv4_type: 'static', ipv4_address: '10.10.10.1', ipv4_subnet: 24, ipv6_type: 'none', blockpriv: false, blockbogons: false, status: 'up' },
+        { id: 'opt2', if: 'em3', descr: 'IOT', enable: true, ipv4_type: 'static', ipv4_address: '172.16.0.1', ipv4_subnet: 24, ipv6_type: 'none', blockpriv: true, blockbogons: false, status: 'down' },
+      ],
+    },
+  }),
   'GET /api/v2/interface/available_interfaces': () => ({ data: [] }),
   'GET /api/v2/interface/vlans': () => ({ data: [] }),
   'GET /api/v2/interface/bridges': () => ({ data: [] }),

@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import { AliasAutocomplete } from '@/components/shared/AliasAutocomplete';
+import { InterfaceSelector } from '@/components/shared/InterfaceSelector';
 import type {
   FirewallAction,
   FirewallProtocol,
@@ -206,13 +207,12 @@ export function FirewallRuleForm({
         name="interface"
         control={control}
         render={({ field }) => (
-          <TextField
-            {...field}
+          <InterfaceSelector
+            value={field.value}
+            onChange={field.onChange}
             label="Interface"
-            fullWidth
             error={!!errors.interface}
             helperText={errors.interface?.message}
-            placeholder="e.g., lan, wan, opt1"
           />
         )}
       />

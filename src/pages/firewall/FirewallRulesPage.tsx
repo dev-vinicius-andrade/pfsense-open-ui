@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import {
@@ -11,12 +12,14 @@ import {
   Paper,
   Skeleton,
   Switch,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tabs,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -57,7 +60,13 @@ import {
   firewallQueryKeys,
   type FirewallRule,
 } from '@/api/modules/firewall';
+import { fetchInterfaces } from '@/api/modules/interfaces';
 import { FirewallRuleForm, type FirewallRuleFormData } from './FirewallRuleForm';
+
+// --- Constants ---
+
+const FLOATING_TAB_KEY = '__floating__';
+const IFACE_PARAM = 'iface';
 
 // --- Action Chip Colors ---
 
@@ -66,6 +75,25 @@ const actionColorMap: Record<string, 'success' | 'error' | 'warning'> = {
   block: 'error',
   reject: 'warning',
 };
+
+// --- Helper Functions ---
+
+function formatAddress(type: string, address?: string): string {
+  if (type === 'any') return 'Any';
+  if (type === 'alias') return address ? `Alias: ${address}` : 'Alias';
+  return address ?? '-';
+}
+
+function isFloatingRule(rule: FirewallRule): boolean {
+  return !rule.interface || rule.interface === '' || rule.interface === 'floating';
+}
+
+function filterRulesByInterface(rules: FirewallRule[], ifaceId: string): FirewallRule[] {
+  if (ifaceId === FLOATING_TAB_KEY) {
+    return rules.filter(isFloatingRule);
+  }
+  return rules.filter((r) => r.interface === ifaceId);
+}
 
 // --- Sortable Row Component ---
 
@@ -146,10 +174,100 @@ function SortableRow({ rule, onToggle, onEdit, onDelete }: SortableRowProps) {
   );
 }
 
-function formatAddress(type: string, address?: string): string {
-  if (type === 'any') return 'Any';
-  if (type === 'alias') return address ? `Alias: ${address}` : 'Alias';
-  return address ?? '-';
+// --- Rule Table Component ---
+
+interface RuleTableProps {
+  rules: FirewallRule[];
+  isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+  onRefetch: () => void;
+  onToggle: (rule: FirewallRule) => void;
+  onEdit: (rule: FirewallRule) => void;
+  onDelete: (rule: FirewallRule) => void;
+  sensors: ReturnType<typeof useSensors>;
+  onDragEnd: (event: DragEndEvent) => void;
+}
+
+function RuleTable({
+  rules,
+  isLoading,
+  isError,
+  error,
+  onRefetch,
+  onToggle,
+  onEdit,
+  onDelete,
+  sensors,
+  onDragEnd,
+}: RuleTableProps) {
+  if (isLoading) {
+    return (
+      <Paper sx={{ p: 2 }}>
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} height={48} sx={{ mb: 1 }} />
+        ))}
+      </Paper>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Typography color="error" sx={{ mb: 2 }}>
+          Failed to load firewall rules:{' '}
+          {error instanceof Error ? error.message : 'Unknown error'}
+        </Typography>
+        <Button variant="outlined" onClick={onRefetch}>
+          Retry
+        </Button>
+      </Paper>
+    );
+  }
+
+  if (rules.length === 0) {
+    return (
+      <Paper>
+        <EmptyState message="No firewall rules configured for this interface. Add a rule to get started." />
+      </Paper>
+    );
+  }
+
+  return (
+    <TableContainer component={Paper}>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <SortableContext items={rules.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ width: 48 }} />
+                <TableCell sx={{ width: 64 }}>On</TableCell>
+                <TableCell>Action</TableCell>
+                <TableCell>Protocol</TableCell>
+                <TableCell>Source</TableCell>
+                <TableCell>Destination</TableCell>
+                <TableCell>Port</TableCell>
+                <TableCell>Schedule</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rules.map((rule) => (
+                <SortableRow
+                  key={rule.id}
+                  rule={rule}
+                  onToggle={onToggle}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </SortableContext>
+      </DndContext>
+    </TableContainer>
+  );
 }
 
 // --- Main Page Component ---
@@ -157,6 +275,8 @@ function formatAddress(type: string, address?: string): string {
 export function FirewallRulesPage() {
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<FirewallRule | null>(null);
@@ -169,12 +289,52 @@ export function FirewallRulesPage() {
 
   // --- Queries ---
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data: interfacesData, isLoading: interfacesLoading } = useQuery({
+    queryKey: ['interfaces'],
+    queryFn: fetchInterfaces,
+  });
+
+  const { data: rulesData, isLoading: rulesLoading, isError, error, refetch } = useQuery({
     queryKey: firewallQueryKeys.rules,
     queryFn: fetchFirewallRules,
   });
 
-  const rules = data?.data ?? [];
+  const allRules = rulesData?.data ?? [];
+  const interfaces = interfacesData ?? [];
+
+  // Build tab list: one per interface + floating rules tab
+  const tabs = useMemo(() => {
+    const result: Array<{ key: string; label: string }> = [];
+    for (const iface of interfaces) {
+      result.push({ key: iface.id, label: iface.descr || iface.id });
+    }
+    result.push({ key: FLOATING_TAB_KEY, label: 'Floating Rules' });
+    return result;
+  }, [interfaces]);
+
+  // Determine active tab from URL search params, defaulting to first tab
+  const activeTabKey = useMemo(() => {
+    const paramValue = searchParams.get(IFACE_PARAM);
+    if (paramValue && tabs.some((t) => t.key === paramValue)) {
+      return paramValue;
+    }
+    return tabs.length > 0 ? tabs[0].key : FLOATING_TAB_KEY;
+  }, [searchParams, tabs]);
+
+  // Filter rules for the active tab
+  const filteredRules = useMemo(
+    () => filterRulesByInterface(allRules, activeTabKey),
+    [allRules, activeTabKey],
+  );
+
+  // --- Tab Change Handler ---
+
+  const handleTabChange = useCallback(
+    (_event: React.SyntheticEvent, newValue: string) => {
+      setSearchParams({ [IFACE_PARAM]: newValue }, { replace: true });
+    },
+    [setSearchParams],
+  );
 
   // --- Mutations ---
 
@@ -184,7 +344,7 @@ export function FirewallRulesPage() {
     onMutate: async ({ id, enabled }) => {
       await queryClient.cancelQueries({ queryKey: firewallQueryKeys.rules });
       const previous = queryClient.getQueryData(firewallQueryKeys.rules);
-      queryClient.setQueryData(firewallQueryKeys.rules, (old: typeof data) => {
+      queryClient.setQueryData(firewallQueryKeys.rules, (old: typeof rulesData) => {
         if (!old) return old;
         return {
           ...old,
@@ -194,11 +354,11 @@ export function FirewallRulesPage() {
       setHasPendingChanges(true);
       return { previous };
     },
-    onError: (error: unknown, _vars, context) => {
+    onError: (err: unknown, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(firewallQueryKeys.rules, context.previous);
       }
-      enqueueSnackbar(getErrorMessage(error, 'Failed to toggle firewall rule'), { variant: 'error' });
+      enqueueSnackbar(getErrorMessage(err, 'Failed to toggle firewall rule'), { variant: 'error' });
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: firewallQueryKeys.rules });
@@ -233,8 +393,8 @@ export function FirewallRulesPage() {
       setHasPendingChanges(true);
       setDeleteTarget(null);
     },
-    onError: (error: unknown) => {
-      enqueueSnackbar(getErrorMessage(error, 'Failed to delete firewall rule'), { variant: 'error' });
+    onError: (err: unknown) => {
+      enqueueSnackbar(getErrorMessage(err, 'Failed to delete firewall rule'), { variant: 'error' });
     },
   });
 
@@ -243,18 +403,18 @@ export function FirewallRulesPage() {
     onMutate: async (newOrder) => {
       await queryClient.cancelQueries({ queryKey: firewallQueryKeys.rules });
       const previous = queryClient.getQueryData(firewallQueryKeys.rules);
-      queryClient.setQueryData(firewallQueryKeys.rules, (old: typeof data) => {
+      queryClient.setQueryData(firewallQueryKeys.rules, (old: typeof rulesData) => {
         if (!old) return old;
         return { ...old, data: newOrder };
       });
       setHasPendingChanges(true);
       return { previous };
     },
-    onError: (error: unknown, _vars, context) => {
+    onError: (err: unknown, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(firewallQueryKeys.rules, context.previous);
       }
-      enqueueSnackbar(getErrorMessage(error, 'Failed to reorder firewall rules'), { variant: 'error' });
+      enqueueSnackbar(getErrorMessage(err, 'Failed to reorder firewall rules'), { variant: 'error' });
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: firewallQueryKeys.rules });
@@ -281,17 +441,17 @@ export function FirewallRulesPage() {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
 
-      const oldIndex = rules.findIndex((r) => r.id === active.id);
-      const newIndex = rules.findIndex((r) => r.id === over.id);
+      const oldIndex = filteredRules.findIndex((r) => r.id === active.id);
+      const newIndex = filteredRules.findIndex((r) => r.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return;
 
-      const reordered = arrayMove(rules, oldIndex, newIndex).map((r, i) => ({
+      const reordered = arrayMove(filteredRules, oldIndex, newIndex).map((r, i) => ({
         ...r,
         position: i,
       }));
       reorderMutation.mutate(reordered);
     },
-    [rules, reorderMutation],
+    [filteredRules, reorderMutation],
   );
 
   const handleCreate = () => {
@@ -308,11 +468,19 @@ export function FirewallRulesPage() {
     if (editingRule) {
       updateMutation.mutate({ id: editingRule.id, input: formData });
     } else {
-      createMutation.mutate(formData);
+      // Pre-fill the interface from the active tab when creating
+      const formWithInterface = {
+        ...formData,
+        interface: activeTabKey === FLOATING_TAB_KEY ? '' : activeTabKey,
+      };
+      createMutation.mutate(formWithInterface);
     }
   };
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
+  // Determine the default interface value for the form based on active tab
+  const defaultInterfaceForForm = activeTabKey === FLOATING_TAB_KEY ? '' : activeTabKey;
 
   // --- Render ---
 
@@ -322,7 +490,7 @@ export function FirewallRulesPage() {
         title="Firewall Rules"
         actions={
           <>
-            <Button startIcon={<RefreshIcon />} onClick={() => refetch()} disabled={isLoading}>
+            <Button startIcon={<RefreshIcon />} onClick={() => refetch()} disabled={rulesLoading}>
               Refresh
             </Button>
             <Button
@@ -343,66 +511,57 @@ export function FirewallRulesPage() {
         isApplying={applyChanges.isPending}
       />
 
-      {isLoading && (
-        <Paper sx={{ p: 2 }}>
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} height={48} sx={{ mb: 1 }} />
-          ))}
-        </Paper>
-      )}
+      {/* Interface Tabs */}
+      <Paper sx={{ mb: 2 }}>
+        {interfacesLoading ? (
+          <Box sx={{ p: 1, display: 'flex', gap: 1 }}>
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} width={80} height={36} />
+            ))}
+          </Box>
+        ) : (
+          <Tabs
+            value={activeTabKey}
+            onChange={handleTabChange}
+            indicatorColor="primary"
+            textColor="primary"
+            variant="scrollable"
+            scrollButtons="auto"
+            aria-label="Firewall rules by interface"
+          >
+            {tabs.map((tab) => (
+              <Tab
+                key={tab.key}
+                value={tab.key}
+                label={tab.label}
+                id={`firewall-tab-${tab.key}`}
+                aria-controls={`firewall-tabpanel-${tab.key}`}
+              />
+            ))}
+          </Tabs>
+        )}
+      </Paper>
 
-      {isError && (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography color="error" sx={{ mb: 2 }}>
-            Failed to load firewall rules:{' '}
-            {error instanceof Error ? error.message : 'Unknown error'}
-          </Typography>
-          <Button variant="outlined" onClick={() => refetch()}>
-            Retry
-          </Button>
-        </Paper>
-      )}
-
-      {!isLoading && !isError && rules.length === 0 && (
-        <Paper>
-          <EmptyState message="No firewall rules configured. Add a rule to get started." />
-        </Paper>
-      )}
-
-      {!isLoading && !isError && rules.length > 0 && (
-        <TableContainer component={Paper}>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={rules.map((r) => r.id)} strategy={verticalListSortingStrategy}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ width: 48 }} />
-                    <TableCell sx={{ width: 64 }}>On</TableCell>
-                    <TableCell>Action</TableCell>
-                    <TableCell>Protocol</TableCell>
-                    <TableCell>Source</TableCell>
-                    <TableCell>Destination</TableCell>
-                    <TableCell>Port</TableCell>
-                    <TableCell>Schedule</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rules.map((rule) => (
-                    <SortableRow
-                      key={rule.id}
-                      rule={rule}
-                      onToggle={handleToggle}
-                      onEdit={handleEdit}
-                      onDelete={(r) => setDeleteTarget(r)}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </SortableContext>
-          </DndContext>
-        </TableContainer>
+      {/* Tab Panel Content */}
+      {!interfacesLoading && tabs.length > 0 && (
+        <Box
+          role="tabpanel"
+          id={`firewall-tabpanel-${activeTabKey}`}
+          aria-labelledby={`firewall-tab-${activeTabKey}`}
+        >
+          <RuleTable
+            rules={filteredRules}
+            isLoading={rulesLoading}
+            isError={isError}
+            error={error}
+            onRefetch={refetch}
+            onToggle={handleToggle}
+            onEdit={handleEdit}
+            onDelete={(r) => setDeleteTarget(r)}
+            sensors={sensors}
+            onDragEnd={handleDragEnd}
+          />
+        </Box>
       )}
 
       {/* Create / Edit Dialog */}
@@ -415,7 +574,13 @@ export function FirewallRulesPage() {
         <DialogTitle>{editingRule ? 'Edit Firewall Rule' : 'Create Firewall Rule'}</DialogTitle>
         <Box sx={{ px: 3, pb: 3 }}>
           <FirewallRuleForm
-            initialData={editingRule}
+            initialData={
+              editingRule ??
+              // When creating a new rule, provide a stub with the active tab's interface pre-selected
+              (!editingRule
+                ? ({ interface: defaultInterfaceForForm } as FirewallRule)
+                : null)
+            }
             onSubmit={handleFormSubmit}
             onCancel={() => setDialogOpen(false)}
             isSubmitting={isSubmitting}

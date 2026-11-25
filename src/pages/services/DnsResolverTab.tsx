@@ -61,8 +61,18 @@ function HostOverrideForm({
   const [ipAddress, setIpAddress] = useState(initialData?.ip_address ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
 
+  const ipRegex = /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$|^(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$|^::(?:[a-fA-F0-9]{1,4}:){0,6}[a-fA-F0-9]{1,4}$/;
+  const hostnameRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
+  const domainRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+  const hostError = !!host && !hostnameRegex.test(host);
+  const domainError = !!domain && !domainRegex.test(domain);
+  const ipError = !!ipAddress && !ipRegex.test(ipAddress);
+  const formValid = !!host && !!domain && !!ipAddress && !hostError && !domainError && !ipError;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formValid) return;
     onSubmit({
       host,
       domain,
@@ -80,6 +90,8 @@ function HostOverrideForm({
         required
         fullWidth
         placeholder="myhost"
+        error={hostError}
+        helperText={hostError ? 'Enter a valid hostname (letters, numbers, hyphens)' : undefined}
       />
       <TextField
         label="Domain"
@@ -88,6 +100,8 @@ function HostOverrideForm({
         required
         fullWidth
         placeholder="example.com"
+        error={domainError}
+        helperText={domainError ? 'Enter a valid domain name' : undefined}
       />
       <TextField
         label="IP Address"
@@ -96,6 +110,8 @@ function HostOverrideForm({
         required
         fullWidth
         placeholder="192.168.1.100"
+        error={ipError}
+        helperText={ipError ? 'Enter a valid IPv4 or IPv6 address' : undefined}
       />
       <TextField
         label="Description"
@@ -105,7 +121,7 @@ function HostOverrideForm({
       />
       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
         <Button onClick={onCancel}>Cancel</Button>
-        <Button type="submit" variant="contained" disabled={isSubmitting}>
+        <Button type="submit" variant="contained" disabled={isSubmitting || !formValid}>
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>
       </Box>

@@ -36,12 +36,27 @@ export const MOCK_SERVICES = [
 ];
 
 export const MOCK_FIREWALL_RULES = [
-  { id: 0, enabled: true, action: 'pass', protocol: 'tcp', source: 'any', destination: 'any', port: '443', description: 'Allow HTTPS outbound', interface: 'lan' },
-  { id: 1, enabled: true, action: 'pass', protocol: 'tcp', source: 'any', destination: 'any', port: '80', description: 'Allow HTTP outbound', interface: 'lan' },
-  { id: 2, enabled: true, action: 'pass', protocol: 'udp', source: 'any', destination: 'any', port: '53', description: 'Allow DNS outbound', interface: 'lan' },
-  { id: 3, enabled: false, action: 'block', protocol: 'any', source: '192.168.1.100', destination: 'any', port: '', description: 'Block guest device', interface: 'lan' },
-  { id: 4, enabled: true, action: 'pass', protocol: 'tcp', source: 'any', destination: '192.168.1.10', port: '22', description: 'SSH to management server', interface: 'lan' },
-  { id: 5, enabled: true, action: 'block', protocol: 'any', source: 'any', destination: 'any', port: '', description: 'Default deny', interface: 'wan' },
+  // LAN rules
+  { id: 0, position: 0, enabled: true, action: 'pass', interface: 'lan', address_family: 'inet', protocol: 'tcp', source_type: 'any', destination_type: 'any', destination_port: '443', description: 'Allow HTTPS outbound' },
+  { id: 1, position: 1, enabled: true, action: 'pass', interface: 'lan', address_family: 'inet', protocol: 'tcp', source_type: 'any', destination_type: 'any', destination_port: '80', description: 'Allow HTTP outbound' },
+  { id: 2, position: 2, enabled: true, action: 'pass', interface: 'lan', address_family: 'inet', protocol: 'udp', source_type: 'any', destination_type: 'any', destination_port: '53', description: 'Allow DNS outbound' },
+  { id: 3, position: 3, enabled: false, action: 'block', interface: 'lan', address_family: 'inet', protocol: 'any', source_type: 'single', source_address: '192.168.1.100', destination_type: 'any', description: 'Block guest device' },
+  { id: 4, position: 4, enabled: true, action: 'pass', interface: 'lan', address_family: 'inet', protocol: 'tcp', source_type: 'any', destination_type: 'single', destination_address: '192.168.1.10', destination_port: '22', description: 'SSH to management server' },
+  // WAN rules
+  { id: 5, position: 0, enabled: true, action: 'block', interface: 'wan', address_family: 'inet', protocol: 'any', source_type: 'any', destination_type: 'any', description: 'Default deny all' },
+  { id: 6, position: 1, enabled: true, action: 'pass', interface: 'wan', address_family: 'inet', protocol: 'tcp', source_type: 'any', destination_type: 'single', destination_address: '203.0.113.42', destination_port: '443', description: 'Allow HTTPS inbound to WAN IP' },
+  { id: 7, position: 2, enabled: true, action: 'pass', interface: 'wan', address_family: 'inet', protocol: 'icmp', source_type: 'any', destination_type: 'any', description: 'Allow ICMP echo reply' },
+  // DMZ (opt1) rules
+  { id: 8, position: 0, enabled: true, action: 'pass', interface: 'opt1', address_family: 'inet', protocol: 'tcp', source_type: 'any', destination_type: 'single', destination_address: '10.10.10.10', destination_port: '80', description: 'Allow HTTP to web server' },
+  { id: 9, position: 1, enabled: true, action: 'pass', interface: 'opt1', address_family: 'inet', protocol: 'tcp', source_type: 'any', destination_type: 'single', destination_address: '10.10.10.10', destination_port: '443', description: 'Allow HTTPS to web server' },
+  { id: 10, position: 2, enabled: true, action: 'block', interface: 'opt1', address_family: 'inet', protocol: 'any', source_type: 'any', destination_type: 'network', destination_address: '192.168.1.0/24', description: 'Block DMZ to LAN access' },
+  // IOT (opt2) rules
+  { id: 11, position: 0, enabled: true, action: 'pass', interface: 'opt2', address_family: 'inet', protocol: 'udp', source_type: 'any', destination_type: 'any', destination_port: '53', description: 'Allow DNS for IoT devices' },
+  { id: 12, position: 1, enabled: true, action: 'block', interface: 'opt2', address_family: 'inet', protocol: 'any', source_type: 'any', destination_type: 'network', destination_address: '192.168.1.0/24', description: 'Block IoT to LAN' },
+  { id: 13, position: 2, enabled: false, action: 'pass', interface: 'opt2', address_family: 'inet', protocol: 'tcp', source_type: 'any', destination_type: 'any', destination_port: '8883', description: 'MQTT TLS (disabled)' },
+  // Floating rules
+  { id: 14, position: 0, enabled: true, action: 'pass', interface: '', address_family: 'inet', protocol: 'any', source_type: 'any', destination_type: 'any', description: 'Allow established/related' },
+  { id: 15, position: 1, enabled: true, action: 'block', interface: '', address_family: 'inet', protocol: 'any', source_type: 'alias', source_address: 'BlockList', destination_type: 'any', description: 'Block known bad IPs globally' },
 ];
 
 export const MOCK_NAT_PORT_FORWARDS = [
