@@ -41,6 +41,12 @@ export function AppShell() {
 
   const presetName = layoutConfig.preset ?? 'relaxed';
   const isEnterprise = presetName === 'enterprise';
+  // Floating sidebar only in relaxed/custom modes, not enterprise
+  const isFloating = !isEnterprise && !isMobile;
+
+  // Floating sidebar offset from viewport edges
+  const FLOAT_GAP = 12; // px gap from top/bottom/left edges
+  const FLOAT_RADIUS = 16; // px border radius for floating effect
 
   // Calculate sidebar width based on preset and state
   const getSidebarWidth = () => {
@@ -62,20 +68,32 @@ export function AppShell() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
-      {/* Desktop sidebar: rendered directly as a flex child, no Drawer wrapper */}
+      {/* Desktop sidebar */}
       {!isMobile && (
         <Box
           sx={{
+            // Floating mode: fixed position with gap and rounded corners
+            ...(isFloating ? {
+              position: 'fixed',
+              top: FLOAT_GAP,
+              left: FLOAT_GAP,
+              bottom: FLOAT_GAP,
+              borderRadius: FLOAT_RADIUS,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 4px 24px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.3)'
+                : '0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)',
+            } : {
+              // Enterprise/non-floating: sticky flush layout
+              position: 'sticky',
+              top: 0,
+              height: '100vh',
+              borderRight: '1px solid',
+              borderColor: 'divider',
+            }),
             width: sidebarWidth,
-            flexShrink: 0,
-            height: '100vh',
-            position: 'sticky',
-            top: 0,
-            overflowY: 'auto',
-            overflowX: 'hidden',
+            zIndex: theme.zIndex.drawer,
+            overflow: 'hidden',
             transition: 'width 225ms cubic-bezier(0, 0, 0.2, 1)',
-            borderRight: '1px solid',
-            borderColor: 'divider',
             background: (t) =>
               t.palette.mode === 'dark'
                 ? `linear-gradient(180deg, ${t.palette.background.paper} 0%, ${t.palette.background.default} 100%)`
@@ -105,6 +123,10 @@ export function AppShell() {
           minWidth: 0,
           minHeight: '100vh',
           overflowY: 'auto',
+          // Floating mode needs extra padding for the gap; flush mode uses no offset
+          pl: isMobile ? 0 : isFloating ? `${sidebarWidth + FLOAT_GAP * 2}px` : 0,
+          ml: isMobile ? 0 : isFloating ? 0 : `${sidebarWidth}px`,
+          transition: 'padding-left 225ms cubic-bezier(0, 0, 0.2, 1), margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
         }}
       >
         <TopBar />
