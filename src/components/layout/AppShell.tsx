@@ -61,8 +61,11 @@ export function AppShell() {
  if (isMobile) toggleSidebar();
  };
 
- // Content offset for floating mode
- const contentOffset = isFloating ? sidebarWidth + FLOAT_GAP * 2 : 0;
+ // Content offset: sidebar width + gap on left, gap on right/top/bottom
+ const contentLeftOffset = isFloating ? sidebarWidth + FLOAT_GAP * 2 : 0;
+ const contentRightOffset = isFloating ? FLOAT_GAP : 0;
+ const contentTopOffset = isFloating ? FLOAT_GAP : 0;
+ const contentBottomOffset = isFloating ? FLOAT_GAP : 0;
 
  return (
  <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -116,7 +119,7 @@ export function AppShell() {
  {/* Mobile sidebar */}
  {isMobile && <Sidebar />}
 
- {/* Main content — full-width background, inner offset for sidebar clearance */}
+ {/* Main content — full-width background with uniform padding for floating mode */}
  <Box
  component="main"
  sx={{
@@ -126,21 +129,15 @@ export function AppShell() {
  minWidth: 0,
  minHeight: '100vh',
  bgcolor: 'background.default',
+ // Enterprise/flush: margin-left pushes content right
  ml: isMobile || isFloating ? 0 : `${sidebarWidth}px`,
- transition: 'margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
- }}
- >
- {/* Inner wrapper provides the offset so background stays seamless in floating mode */}
- <Box
- sx={{
- display: 'flex',
- flexDirection: 'column',
- flexGrow: 1,
- pl: isFloating ? `${contentOffset}px` : 0,
- pr: isFloating ? `${FLOAT_GAP}px` : 0,
- pt: isFloating ? `${FLOAT_GAP}px` : 0,
- pb: isFloating ? `${FLOAT_GAP}px` : 0,
- transition: 'padding 225ms cubic-bezier(0, 0, 0.2, 1)',
+ // Floating: uniform padding creates clearance around all edges
+ pl: isFloating ? `${contentLeftOffset}px` : 0,
+ pr: isFloating ? `${contentRightOffset}px` : 0,
+ pt: isFloating ? `${contentTopOffset}px` : 0,
+ pb: isFloating ? `${contentBottomOffset}px` : 0,
+ transition:
+ 'padding 225ms cubic-bezier(0, 0, 0.2, 1), margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
  }}
  >
  <TopBar />
@@ -158,7 +155,6 @@ export function AppShell() {
  <Breadcrumbs />
  <Outlet />
  </Container>
- </Box>
  </Box>
  </Box>
  );
