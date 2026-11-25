@@ -6,6 +6,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  IconButton,
   Paper,
   Stack,
   TextField,
@@ -14,6 +15,8 @@ import {
   Switch,
   FormControlLabel,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -281,23 +284,53 @@ export function GeneralSetupTab() {
               ))}
             </Box>
           </Box>
-          <Controller
-            name="dns_servers"
-            control={dnsForm.control}
-            render={({ field }) => (
-              <TextField
-                label="DNS Servers"
-                value={(field.value ?? []).join(', ')}
-                onChange={(e) => {
-                  const servers = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
-                  field.onChange(servers);
-                }}
-                fullWidth
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              DNS Servers
+            </Typography>
+            <Stack spacing={1}>
+              {(dnsForm.watch('dns_servers') ?? []).map((server: string, index: number) => (
+                <Box key={index} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <TextField
+                    label={`DNS Server ${index + 1}`}
+                    value={server}
+                    onChange={(e) => {
+                      const servers = [...(dnsForm.getValues('dns_servers') ?? [])];
+                      servers[index] = e.target.value;
+                      dnsForm.setValue('dns_servers', servers, { shouldDirty: true });
+                    }}
+                    fullWidth
+                    size="small"
+                    error={!!server && !/^(\d{1,3}\.){3}\d{1,3}$/.test(server)}
+                    helperText={server && !/^(\d{1,3}\.){3}\d{1,3}$/.test(server) ? 'Invalid IPv4 address' : undefined}
+                  />
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => {
+                      const servers = (dnsForm.getValues('dns_servers') ?? []).filter((_: string, i: number) => i !== index);
+                      dnsForm.setValue('dns_servers', servers, { shouldDirty: true });
+                    }}
+                    aria-label={`Remove DNS server ${index + 1}`}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              ))}
+              <Button
+                startIcon={<AddIcon />}
+                variant="outlined"
                 size="small"
-                helperText="Comma-separated list of DNS server IP addresses"
-              />
-            )}
-          />
+                onClick={() => {
+                  const servers = [...(dnsForm.getValues('dns_servers') ?? []), ''];
+                  dnsForm.setValue('dns_servers', servers, { shouldDirty: true });
+                }}
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Add DNS Server
+              </Button>
+            </Stack>
+          </Box>
           <Controller
             name="dns_gateway_override"
             control={dnsForm.control}
