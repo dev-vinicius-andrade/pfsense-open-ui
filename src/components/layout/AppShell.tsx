@@ -113,7 +113,7 @@ export function AppShell() {
       {/* Mobile sidebar */}
       {isMobile && <Sidebar />}
 
-      {/* Main content wrapper — full width, background fills behind floating sidebar */}
+      {/* Main content — full-width background, inner offset for sidebar clearance */}
       <Box
         component="main"
         sx={{
@@ -123,20 +123,22 @@ export function AppShell() {
           minWidth: 0,
           minHeight: '100vh',
           bgcolor: 'background.default',
+          // Enterprise/flush mode: margin pushes content right
+          ml: isMobile || isFloating ? 0 : `${sidebarWidth}px`,
+          transition: 'margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
         }}
       >
-        {/* Inner content area with offset for sidebar */}
+        {/* Inner wrapper provides the offset so background stays seamless in floating mode */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: 'column',
             flexGrow: 1,
-            // Floating: padding-left pushes content right but background stays seamless
-            // Enterprise: margin-left for flush layout against sticky sidebar
-            pl: isMobile ? 0 : isFloating ? `${sidebarWidth + FLOAT_GAP * 2}px` : 0,
-            ml: isMobile || isFloating ? 0 : `${sidebarWidth}px`,
-            transition:
-              'padding-left 225ms cubic-bezier(0, 0, 0.2, 1), margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
+            pl: isFloating ? `${sidebarWidth + FLOAT_GAP * 2}px` : 0,
+            pr: isFloating ? `${FLOAT_GAP}px` : 0,
+            pt: isFloating ? `${FLOAT_GAP}px` : 0,
+            pb: isFloating ? `${FLOAT_GAP}px` : 0,
+            transition: 'padding 225ms cubic-bezier(0, 0, 0.2, 1)',
           }}
         >
           <TopBar />
