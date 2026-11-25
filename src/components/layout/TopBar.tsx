@@ -35,7 +35,15 @@ export function TopBar() {
   };
 
   return (
-    <AppBar position="sticky" color="default">
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        bgcolor: 'background.default',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
       <Toolbar>
         <IconButton
           edge="start"
