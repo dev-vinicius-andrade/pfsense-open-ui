@@ -12,9 +12,13 @@ import {
   MOCK_FIREWALL_RULES,
   MOCK_NAT_PORT_FORWARDS,
   MOCK_DHCP_LEASES,
+  MOCK_ARP_ENTRIES,
   MOCK_USERS,
   MOCK_LOGS,
   MOCK_STATE_TABLE_SIZE,
+  MOCK_ALIASES,
+  MOCK_SCHEDULES,
+  MOCK_FIREWALL_ADVANCED_SETTINGS,
 } from './mockData';
 
 const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -35,19 +39,49 @@ const ROUTES: Record<string, () => MockResponse> = {
   'GET /api/v2/firewall/nat/port_forwards': () => ({ data: MOCK_NAT_PORT_FORWARDS }),
   'GET /api/v2/firewall/nat/outbound/mappings': () => ({ data: [] }),
   'GET /api/v2/firewall/nat/one_to_one/mappings': () => ({ data: [] }),
-  'GET /api/v2/firewall/aliases': () => ({ data: [] }),
-  'GET /api/v2/firewall/schedules': () => ({ data: [] }),
+  'GET /api/v2/firewall/aliases': () => ({ data: MOCK_ALIASES }),
+  'GET /api/v2/firewall/schedules': () => ({ data: MOCK_SCHEDULES }),
+  'GET /api/v2/firewall/advanced_settings': () => ({ data: MOCK_FIREWALL_ADVANCED_SETTINGS }),
   'GET /api/v2/firewall/states': () => ({ data: [] }),
-  'GET /api/v2/firewall/virtual_ips': () => ({ data: [] }),
+  'GET /api/v2/firewall/virtual_ips': () => ({
+    data: {
+      items: [
+        { id: 0, mode: 'carp', interface: 'wan', type: 'single', subnet: '198.51.100.10', subnet_bits: 32, descr: 'WAN CARP VIP', noexpand: false },
+        { id: 1, mode: 'ipalias', interface: 'lan', type: 'single', subnet: '192.168.1.100', subnet_bits: 32, descr: 'LAN IP Alias', noexpand: false },
+        { id: 2, mode: 'proxyarp', interface: 'opt1', type: 'network', subnet: '10.10.10.0', subnet_bits: 24, descr: 'DMZ Proxy ARP Range', noexpand: true },
+      ],
+    },
+  }),
   'GET /api/v2/firewall/nat/outbound/mode': () => ({ data: { mode: 'automatic' } }),
   // Interfaces
   'GET /api/v2/interfaces': () => ({ data: MOCK_INTERFACES }),
   'GET /api/v2/interface/available_interfaces': () => ({ data: [] }),
   'GET /api/v2/interface/vlans': () => ({ data: [] }),
   'GET /api/v2/interface/bridges': () => ({ data: [] }),
-  'GET /api/v2/interface/laggs': () => ({ data: [] }),
-  'GET /api/v2/interface/gres': () => ({ data: [] }),
-  'GET /api/v2/interface/groups': () => ({ data: [] }),
+  'GET /api/v2/interface/laggs': () => ({
+    data: {
+      items: [
+        { id: 'lagg0', members: ['em0', 'em1'], proto: 'lacp', descr: 'WAN LAGG', lacptimeout: 'fast' },
+        { id: 'lagg1', members: ['em2', 'em3'], proto: 'failover', descr: 'LAN Failover' },
+      ],
+    },
+  }),
+  'GET /api/v2/interface/gres': () => ({
+    data: {
+      items: [
+        { id: 'gre0', localaddr: '192.168.1.1', remoteaddr: '10.0.0.1', address: '172.16.0.1', subnet: 30, descr: 'Site-to-Site GRE' },
+        { id: 'gre1', localaddr: '192.168.1.1', remoteaddr: '10.0.0.2', address: '172.16.0.5', subnet: 30, descr: 'Branch Office Tunnel' },
+      ],
+    },
+  }),
+  'GET /api/v2/interface/groups': () => ({
+    data: {
+      items: [
+        { id: 'grp0', name: 'WANGROUP', members: ['wan', 'opt1'], descr: 'WAN Interfaces Group' },
+        { id: 'grp1', name: 'LANGROUP', members: ['lan', 'opt2'], descr: 'LAN Interfaces Group' },
+      ],
+    },
+  }),
   // VPN
   'GET /api/v2/vpn/openvpn/servers': () => ({ data: [] }),
   'GET /api/v2/vpn/openvpn/clients': () => ({ data: [] }),
@@ -69,9 +103,8 @@ const ROUTES: Record<string, () => MockResponse> = {
   'GET /api/v2/system/update': () => ({ data: { status: 'up-to-date' } }),
   'GET /api/v2/system/packages': () => ({ data: [] }),
   'GET /api/v2/system/tunables': () => ({ data: [] }),
-  'GET /api/v2/diagnostics/arp_table': () => ({ data: [] }),
-  'GET /api/v2/diagnostics/config_history/revisions': () => ({ data: [] }),
-  // Services
+  'GET /api/v2/diagnostics/arp_table': () => ({ data: MOCK_ARP_ENTRIES }),
+    // Services
   'GET /api/v2/services/dhcp_servers': () => ({ data: [] }),
   'GET /api/v2/services/dhcp_server/static_mappings': () => ({ data: [] }),
   'GET /api/v2/status/dhcp_server/leases': () => ({ data: MOCK_DHCP_LEASES }),

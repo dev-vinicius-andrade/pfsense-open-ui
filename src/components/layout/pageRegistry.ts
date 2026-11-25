@@ -22,6 +22,7 @@ export const PAGE_REGISTRY: PageEntry[] = [
   // Firewall sub-pages
   { id: 'firewall-aliases', label: 'Aliases', path: '/firewall/aliases', icon: 'Label', category: 'firewall', isTopLevel: false },
   { id: 'firewall-schedules', label: 'Schedules', path: '/firewall/schedules', icon: 'Schedule', category: 'firewall', isTopLevel: false },
+  { id: 'firewall-advanced', label: 'Advanced Settings', path: '/firewall/advanced', icon: 'Tune', category: 'firewall', isTopLevel: false },
 
   // NAT sub-pages
   { id: 'nat-port-forwards', label: 'Port Forwards', path: '/nat/port-forwards', icon: 'CallMade', category: 'nat', isTopLevel: false },
@@ -31,6 +32,10 @@ export const PAGE_REGISTRY: PageEntry[] = [
   // Interface sub-pages
   { id: 'interfaces-vlans', label: 'VLANs', path: '/interfaces/vlans', icon: 'AccountTree', category: 'interfaces', isTopLevel: false },
   { id: 'interfaces-bridges', label: 'Bridges', path: '/interfaces/bridges', icon: 'Hub', category: 'interfaces', isTopLevel: false },
+  { id: 'interfaces-gre', label: 'GRE Tunnels', path: '/interfaces/gre', icon: 'Hub', category: 'interfaces', isTopLevel: false },
+  { id: 'interfaces-lagg', label: 'LAGG', path: '/interfaces/lagg', icon: 'Lan', category: 'interfaces', isTopLevel: false },
+  { id: 'interfaces-groups', label: 'Interface Groups', path: '/interfaces/groups', icon: 'AccountTree', category: 'interfaces', isTopLevel: false },
+  { id: 'interfaces-vips', label: 'Virtual IPs', path: '/interfaces/vips', icon: 'Dns', category: 'interfaces', isTopLevel: false },
 
   // VPN sub-pages
   { id: 'vpn-openvpn', label: 'OpenVPN', path: '/vpn/openvpn', icon: 'VpnLock', category: 'vpn', isTopLevel: false },
@@ -40,7 +45,7 @@ export const PAGE_REGISTRY: PageEntry[] = [
   // Services sub-pages
   { id: 'dhcp-server', label: 'DHCP Server', path: '/services/dhcp', icon: 'Router', category: 'services', isTopLevel: false },
   { id: 'dhcp-static-mappings', label: 'DHCP Static Mappings', path: '/services/dhcp/static', icon: 'Assignment', category: 'services', isTopLevel: false },
-  { id: 'dhcp-leases', label: 'DHCP Leases', path: '/services/dhcp/leases', icon: 'ListAlt', category: 'services', isTopLevel: false },
+  { id: 'dhcp-leases', label: 'DHCP Leases', path: '/services/dhcp-leases', icon: 'ListAlt', category: 'services', isTopLevel: false },
   { id: 'dns-resolver', label: 'DNS Resolver', path: '/services/dns', icon: 'Dns', category: 'services', isTopLevel: false },
   { id: 'dns-host-overrides', label: 'DNS Host Overrides', path: '/services/dns/overrides', icon: 'EditAttributes', category: 'services', isTopLevel: false },
   { id: 'ntp', label: 'NTP', path: '/services/ntp', icon: 'AccessTime', category: 'services', isTopLevel: false },
@@ -56,6 +61,7 @@ export const PAGE_REGISTRY: PageEntry[] = [
   { id: 'settings-general', label: 'General Setup', path: '/system/general', icon: 'Tune', category: 'settings', isTopLevel: false },
   { id: 'settings-packages', label: 'Packages', path: '/system/packages', icon: 'Inventory', category: 'settings', isTopLevel: false },
   { id: 'settings-tunables', label: 'Tunables', path: '/system/tunables', icon: 'Build', category: 'settings', isTopLevel: false },
+  { id: 'arp-table', label: 'ARP Table', path: '/system/arp-table', icon: 'Router', category: 'settings', isTopLevel: false },
 
   // Monitoring sub-pages
   { id: 'monitoring-traffic', label: 'Traffic Graphs', path: '/monitoring/traffic', icon: 'ShowChart', category: 'monitoring', isTopLevel: false },

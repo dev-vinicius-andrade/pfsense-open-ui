@@ -91,14 +91,6 @@ export interface ArpEntry {
   type: 'dynamic' | 'static' | 'permanent';
 }
 
-export interface ConfigRevision {
-  revision_id: number;
-  timestamp: string;
-  user: string;
-  reason: string;
-  description: string;
-  version: string;
-}
 
 export interface FirmwareUpdateStatus {
   update_available: boolean;
@@ -133,8 +125,7 @@ export const systemQueryKeys = {
   tunable: (name: string) => ['system', 'tunable', name] as const,
   firmwareUpdate: ['system', 'firmwareUpdate'] as const,
   arpTable: ['system', 'arpTable'] as const,
-  configHistory: ['system', 'configHistory'] as const,
-};
+  };
 
 // --- User API Functions ---
 
@@ -300,17 +291,11 @@ export async function fetchArpTable(): Promise<ApiResponse<ArpEntry[]>> {
   return get<ApiResponse<ArpEntry[]>>('/diagnostics/arp_table');
 }
 
-export async function rebootSystem(): Promise<ApiResponse<{ message: string }>> {
-  return post<ApiResponse<{ message: string }>>('/diagnostics/reboot');
-}
 
 export async function haltSystem(): Promise<ApiResponse<{ message: string }>> {
   return post<ApiResponse<{ message: string }>>('/diagnostics/halt_system');
 }
 
-export async function fetchConfigHistory(): Promise<ApiResponse<ConfigRevision[]>> {
-  return get<ApiResponse<ConfigRevision[]>>('/diagnostics/config_history/revisions');
-}
 
 export async function executeCommand(command: string): Promise<ApiResponse<{ output: string }>> {
   return post<ApiResponse<{ output: string }>>('/diagnostics/command_prompt', { command });

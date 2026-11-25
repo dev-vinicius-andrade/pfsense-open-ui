@@ -17,16 +17,13 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import { DangerousActionConfirm } from '@/components/shared/DangerousActionConfirm';
 import { EmptyState } from '@/components/shared/EmptyState';
 import {
   runPing,
   fetchArpTable,
-  fetchConfigHistory,
   fetchHostname,
-  rebootSystem,
   haltSystem,
   systemQueryKeys,
 } from '@/api/modules/system';
@@ -39,7 +36,6 @@ export function DiagnosticsTab() {
   const queryClient = useQueryClient();
   const [pingHost, setPingHost] = useState('');
   const [pingOutput, setPingOutput] = useState<string | null>(null);
-  const [rebootOpen, setRebootOpen] = useState(false);
   const [shutdownOpen, setShutdownOpen] = useState(false);
 
   const hostnameQuery = useQuery({
@@ -52,11 +48,6 @@ export function DiagnosticsTab() {
     queryFn: fetchArpTable,
   });
 
-  const configHistoryQuery = useQuery({
-    queryKey: systemQueryKeys.configHistory,
-    queryFn: fetchConfigHistory,
-  });
-
   const pingMutation = useMutation({
     mutationFn: (host: string) => runPing(host),
     onSuccess: (result) => {
@@ -64,13 +55,6 @@ export function DiagnosticsTab() {
     },
     onError: () => {
       setPingOutput('Ping failed. Check host address and try again.');
-    },
-  });
-
-  const rebootMutation = useMutation({
-    mutationFn: rebootSystem,
-    onSuccess: () => {
-      setRebootOpen(false);
     },
   });
 
@@ -198,54 +182,6 @@ export function DiagnosticsTab() {
         )}
       </Paper>
 
-      {/* Config History */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Configuration History
-        </Typography>
-
-        {configHistoryQuery.isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={24} />
-          </Box>
-        )}
-
-        {configHistoryQuery.isError && (
-          <Alert severity="error">Failed to load configuration history.</Alert>
-        )}
-
-        {!configHistoryQuery.isLoading && !configHistoryQuery.isError && (configHistoryQuery.data?.data?.length ?? 0) === 0 && (
-          <EmptyState message="No configuration revisions found." />
-        )}
-
-        {!configHistoryQuery.isLoading && !configHistoryQuery.isError && (configHistoryQuery.data?.data?.length ?? 0) > 0 && (
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Revision</TableCell>
-                  <TableCell>Timestamp</TableCell>
-                  <TableCell>User</TableCell>
-                  <TableCell>Reason</TableCell>
-                  <TableCell>Description</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {configHistoryQuery.data!.data.map((rev) => (
-                  <TableRow key={rev.revision_id}>
-                    <TableCell>{rev.revision_id}</TableCell>
-                    <TableCell>{new Date(rev.timestamp).toLocaleString()}</TableCell>
-                    <TableCell>{rev.user}</TableCell>
-                    <TableCell>{rev.reason || '-'}</TableCell>
-                    <TableCell>{rev.description || '-'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Paper>
-
       {/* Dangerous Actions */}
       <Paper sx={{ p: 3, border: 1, borderColor: 'error.main' }}>
         <Typography variant="h6" color="error" gutterBottom>
@@ -256,14 +192,6 @@ export function DiagnosticsTab() {
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<RestartAltIcon />}
-            onClick={() => setRebootOpen(true)}
-          >
-            Reboot System
-          </Button>
           <Button
             variant="contained"
             color="error"
@@ -276,17 +204,6 @@ export function DiagnosticsTab() {
       </Paper>
 
       {/* Double Confirmation Dialogs */}
-      <DangerousActionConfirm
-        open={rebootOpen}
-        title="Reboot System"
-        message="This will restart the pfSense appliance. All active connections will be terminated and services will be unavailable during reboot. This action cannot be undone once confirmed."
-        confirmationWord={confirmationWord}
-        confirmLabel="Reboot"
-        onConfirm={() => rebootMutation.mutate()}
-        onCancel={() => setRebootOpen(false)}
-        isPending={rebootMutation.isPending}
-      />
-
       <DangerousActionConfirm
         open={shutdownOpen}
         title="Shutdown System"
