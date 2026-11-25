@@ -3,11 +3,12 @@ import { Box, Tab, Tabs } from '@mui/material';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { DhcpServerTab } from './DhcpServerTab';
 import { DnsResolverTab } from './DnsResolverTab';
+import { DnsForwarderTab } from './DnsForwarderTab';
 import { NtpTab } from './NtpTab';
 import { SshTab } from './SshTab';
 import { CronJobsTab } from './CronJobsTab';
 
-const TAB_LABELS = ['DHCP Server', 'DNS Resolver', 'NTP', 'SSH', 'Cron Jobs'] as const;
+const TAB_LABELS = ['DHCP Server', 'DNS Resolver', 'DNS Forwarder', 'NTP', 'SSH', 'Cron Jobs'] as const;
 
 export function ServicesPage() {
   const [activeTab, setActiveTab] = useState(0);
@@ -30,9 +31,10 @@ export function ServicesPage() {
 
       {activeTab === 0 && <DhcpServerTab />}
       {activeTab === 1 && <DnsResolverTab />}
-      {activeTab === 2 && <NtpTab />}
-      {activeTab === 3 && <SshTab />}
-      {activeTab === 4 && <CronJobsTab />}
+      {activeTab === 2 && <DnsForwarderTab />}
+      {activeTab === 3 && <NtpTab />}
+      {activeTab === 4 && <SshTab />}
+      {activeTab === 5 && <CronJobsTab />}
     </Box>
   );
 }

@@ -264,7 +264,7 @@ export function SettingsPage() {
     <Box sx={{ maxWidth: 960, mx: 'auto' }}>
       <PageHeader title="Settings" />
 
-      <Paper sx={{ mt: 2 }}>
+      <Paper sx={{ mt: 2, p: 3 }}>
         <Tabs
           value={activeTab}
           onChange={(_, v) => setActiveTab(v)}

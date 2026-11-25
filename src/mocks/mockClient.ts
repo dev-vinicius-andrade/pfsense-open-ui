@@ -81,6 +81,9 @@ const ROUTES: Record<string, () => MockResponse> = {
   'GET /api/v2/services/ntp/time_servers': () => ({ data: [] }),
   'GET /api/v2/services/ssh': () => ({ data: {} }),
   'GET /api/v2/services/cron_jobs': () => ({ data: [] }),
+  // DNS Forwarder
+  'GET /api/v2/services/dns_forwarder/settings': () => ({ data: {} }),
+  'GET /api/v2/services/dns_forwarder/host_overrides': () => ({ data: [] }),
 };
 
 const LOG_ROUTES: Record<string, () => MockResponse> = {

@@ -5,6 +5,8 @@ import { Sidebar, SidebarContent } from './Sidebar';
 import { TopBar } from './TopBar';
 import { Breadcrumbs } from './Breadcrumbs';
 import { DemoBanner } from '@/components/shared/DemoBanner';
+import { SearchPalette } from '@/components/shared/SearchPalette';
+import { useCommandPalette } from '@/hooks/useCommandPalette';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfigStore } from '@/stores/configStore';
 import { PRESETS, type LayoutPresetConfig } from '@/theme/presets';
@@ -35,6 +37,7 @@ export function AppShell() {
  const presetConfig = useLayoutPresetConfig();
  const [sidebarHovered, setSidebarHovered] = useState(false);
  const navigate = useNavigate();
+ const { open: searchOpen, close: closeSearch, openPalette } = useCommandPalette();
 
  const presetName = layoutConfig.preset ?? 'relaxed';
  const isEnterprise = presetName === 'enterprise';
@@ -140,7 +143,7 @@ export function AppShell() {
  'padding 225ms cubic-bezier(0, 0, 0.2, 1), margin-left 225ms cubic-bezier(0, 0, 0.2, 1)',
  }}
  >
- <TopBar />
+ <TopBar onSearchClick={openPalette} />
  <DemoBanner />
  <Container
  maxWidth={isMobile ? false : presetConfig.containerMaxWidth}
@@ -156,6 +159,8 @@ export function AppShell() {
  <Outlet />
  </Container>
  </Box>
+
+ <SearchPalette open={searchOpen} onClose={closeSearch} />
  </Box>
  );
 }

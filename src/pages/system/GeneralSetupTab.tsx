@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  Autocomplete,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Paper,
   Stack,
@@ -24,6 +26,15 @@ import {
   updateDns,
   systemQueryKeys,
 } from '@/api/modules/system';
+import { TIMEZONE_OPTIONS } from '@/utils/timezones';
+
+const DNS_SUGGESTIONS = [
+  { label: 'Cloudflare', servers: ['1.1.1.1', '1.0.0.1'] },
+  { label: 'Google', servers: ['8.8.8.8', '8.8.4.4'] },
+  { label: 'Quad9', servers: ['9.9.9.9', '149.112.112.112'] },
+  { label: 'OpenDNS', servers: ['208.67.222.222', '208.67.220.220'] },
+  { label: 'AdGuard', servers: ['94.140.14.14', '94.140.15.15'] },
+] as const;
 
 const hostnameSchema = z.object({
   hostname: z.string().min(1, 'Hostname is required').max(63),
@@ -130,6 +141,10 @@ export function GeneralSetupTab() {
     );
   }
 
+  const handleApplySuggestion = (servers: readonly string[]) => {
+    dnsForm.setValue('dns_servers', [...servers], { shouldDirty: true });
+  };
+
   return (
     <Stack spacing={3}>
       {/* Hostname Section */}
@@ -194,13 +209,36 @@ export function GeneralSetupTab() {
           const tz = formData.get('timezone') as string;
           if (tz) timezoneMutation.mutate({ timezone: tz });
         }}>
-          <TextField
-            name="timezone"
-            label="Timezone"
-            defaultValue={timezoneQuery.data?.data?.timezone ?? ''}
+          <Autocomplete
+            options={TIMEZONE_OPTIONS}
+            groupBy={(option) => option.group}
+            getOptionLabel={(option) => `${option.group}/${option.label}`}
+            value={TIMEZONE_OPTIONS.find((tz) => tz.value === (timezoneQuery.data?.data?.timezone ?? '')) ?? null}
+            onChange={(_e, newValue) => {
+              if (newValue) {
+                timezoneMutation.mutate({ timezone: newValue.value });
+              }
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Timezone"
+                placeholder="Search timezones..."
+                size="small"
+              />
+            )}
+            isOptionEqualToValue={(option, value) => option.value === value.value}
+            filterOptions={(options, state) => {
+              const input = state.inputValue.toLowerCase();
+              if (!input) return options;
+              return options.filter(
+                (opt) =>
+                  opt.label.toLowerCase().includes(input) ||
+                  opt.value.toLowerCase().includes(input) ||
+                  opt.group.toLowerCase().includes(input),
+              );
+            }}
             fullWidth
-            size="small"
-            helperText="e.g., America/New_York, UTC, Europe/London"
           />
           <Box>
             <Button
@@ -225,6 +263,24 @@ export function GeneralSetupTab() {
           DNS Settings
         </Typography>
         <Stack spacing={2} component="form" onSubmit={dnsForm.handleSubmit((data) => dnsMutation.mutate(data))}>
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Suggested DNS Providers
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {DNS_SUGGESTIONS.map((suggestion) => (
+                <Chip
+                  key={suggestion.label}
+                  label={suggestion.label}
+                  onClick={() => handleApplySuggestion(suggestion.servers)}
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  clickable
+                />
+              ))}
+            </Box>
+          </Box>
           <Controller
             name="dns_servers"
             control={dnsForm.control}

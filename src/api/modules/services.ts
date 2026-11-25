@@ -161,6 +161,32 @@ export interface CronJobCreateInput {
   description?: string;
 }
 
+// --- DNS Forwarder Types ---
+
+export interface DnsForwarderSettings {
+  enable: boolean;
+  port: number;
+  network_interfaces: string[];
+  enable_dnssec: boolean;
+  log_queries: boolean;
+  strict_binding: boolean;
+}
+
+export interface DnsForwarderHostOverride {
+  id: number;
+  host: string;
+  domain: string;
+  ip_address: string;
+  description?: string;
+}
+
+export interface DnsForwarderHostOverrideCreateInput {
+  host: string;
+  domain: string;
+  ip_address: string;
+  description?: string;
+}
+
 // --- Query Keys ---
 
 export const servicesQueryKeys = {
@@ -172,6 +198,8 @@ export const servicesQueryKeys = {
   dnsResolverSettings: ['services', 'dnsResolverSettings'] as const,
   dnsHostOverrides: ['services', 'dnsHostOverrides'] as const,
   dnsDomainOverrides: ['services', 'dnsDomainOverrides'] as const,
+  dnsForwarderSettings: ['services', 'dnsForwarderSettings'] as const,
+  dnsForwarderHostOverrides: ['services', 'dnsForwarderHostOverrides'] as const,
   ntpSettings: ['services', 'ntpSettings'] as const,
   ntpTimeServers: ['services', 'ntpTimeServers'] as const,
   sshSettings: ['services', 'sshSettings'] as const,
@@ -325,4 +353,41 @@ export async function updateCronJob(
 
 export async function deleteCronJob(id: number): Promise<ApiResponse<null>> {
   return del<ApiResponse<null>>('/services/cron_job', { params: { id } });
+}
+
+// --- DNS Forwarder API Functions ---
+
+export async function fetchDnsForwarderSettings(): Promise<ApiResponse<DnsForwarderSettings>> {
+  return get<ApiResponse<DnsForwarderSettings>>('/services/dns_forwarder/settings');
+}
+
+export async function updateDnsForwarderSettings(
+  settings: Partial<DnsForwarderSettings>,
+): Promise<ApiResponse<DnsForwarderSettings>> {
+  return patch<ApiResponse<DnsForwarderSettings>>('/services/dns_forwarder/settings', settings);
+}
+
+export async function fetchDnsForwarderHostOverrides(): Promise<ApiResponse<DnsForwarderHostOverride[]>> {
+  return get<ApiResponse<DnsForwarderHostOverride[]>>('/services/dns_forwarder/host_overrides');
+}
+
+export async function createDnsForwarderHostOverride(
+  input: DnsForwarderHostOverrideCreateInput,
+): Promise<ApiResponse<DnsForwarderHostOverride>> {
+  return post<ApiResponse<DnsForwarderHostOverride>>('/services/dns_forwarder/host_override', input);
+}
+
+export async function updateDnsForwarderHostOverride(
+  id: number,
+  input: Partial<DnsForwarderHostOverrideCreateInput>,
+): Promise<ApiResponse<DnsForwarderHostOverride>> {
+  return patch<ApiResponse<DnsForwarderHostOverride>>('/services/dns_forwarder/host_override', { id, ...input });
+}
+
+export async function deleteDnsForwarderHostOverride(id: number): Promise<ApiResponse<null>> {
+  return del<ApiResponse<null>>('/services/dns_forwarder/host_override', { params: { id } });
+}
+
+export async function applyDnsForwarderChanges(): Promise<ApiResponse<null>> {
+  return post<ApiResponse<null>>('/services/dns_forwarder/apply');
 }

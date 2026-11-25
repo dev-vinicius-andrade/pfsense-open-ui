@@ -4,6 +4,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import CodeIcon from '@mui/icons-material/Code';
+import SearchIcon from '@mui/icons-material/Search';
 import { useState, lazy, Suspense } from 'react';
 import { useUiStore } from '@/stores/uiStore';
 import { useAuth } from '@/auth/useAuth';
@@ -14,10 +15,17 @@ const TerminalFloatingPanel = lazy(() =>
 
 const TERMINAL_PRIVILEGE = 'page-diagnostics-command-prompt';
 
-export function TopBar() {
+interface TopBarProps {
+  onSearchClick?: () => void;
+}
+
+export function TopBar({ onSearchClick }: TopBarProps) {
   const { toggleSidebar, themeMode, setThemeMode, floatingTerminalOpen, toggleFloatingTerminal } = useUiStore();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+  const shortcutHint = isMac ? '⌘K' : 'Ctrl+K';
 
   const hasTerminalPrivilege = user?.privileges.includes(TERMINAL_PRIVILEGE) ?? false;
 
@@ -61,6 +69,24 @@ export function TopBar() {
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Chip label="System OK" size="small" color="success" variant="outlined" />
+
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 0.5 }}>
+            <IconButton
+              color="inherit"
+              aria-label="search"
+              onClick={onSearchClick}
+              title={`Search (${shortcutHint})`}
+            >
+              <SearchIcon />
+            </IconButton>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ ml: 0.5, fontFamily: 'monospace', opacity: 0.7 }}
+            >
+              {shortcutHint}
+            </Typography>
+          </Box>
 
           {hasTerminalPrivilege && (
             <IconButton
