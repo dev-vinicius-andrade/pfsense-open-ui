@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Box } from '@mui/material';
+import { Box, GlobalStyles } from '@mui/material';
 import { PanelWrapper } from './PanelWrapper';
 import type { ResolvedPanel } from './usePagePanels';
 import type { PageLayout } from './types';
@@ -17,35 +17,43 @@ const ResponsiveReactGridLayout = React.lazy((): Promise<{ default: React.Compon
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-// Custom styles injected via style tag for RGL resize handles in dark/light themes
-const RGL_RESIZE_STYLES = `
-.react-grid-item > .react-resizable-handle {
-  position: absolute !important;
-  width: 24px !important;
-  height: 24px !important;
-  bottom: 0 !important;
-  right: 0 !important;
-  cursor: se-resize !important;
-  z-index: 100 !important;
-  background-image: none !important;
-}
-.react-grid-item > .react-resizable-handle::after {
-  content: '' !important;
-  position: absolute !important;
-  right: 4px !important;
-  bottom: 4px !important;
-  width: 10px !important;
-  height: 10px !important;
-  border-right: 3px solid rgba(180, 180, 180, 0.8) !important;
-  border-bottom: 3px solid rgba(180, 180, 180, 0.8) !important;
-  pointer-events: none;
-}
-.react-grid-item:hover > .react-resizable-handle::after {
-  border-color: rgba(100, 220, 180, 1) !important;
-}
-.react-grid-item > .react-resizable-handle span {
-  display: none !important;
-}`;
+/**
+ * MUI GlobalStyles for RGL resize handles.
+ * Using GlobalStyles instead of a raw <style> tag ensures proper CSS specificity
+ * against MUI's CSS-in-JS generated styles.
+ */
+const rglResizeGlobalStyles = {
+  // Make the default react-resizable handle visible and styled
+  '.react-grid-item > .react-resizable-handle': {
+    position: 'absolute !important',
+    width: '20px !important',
+    height: '20px !important',
+    bottom: '0 !important',
+    right: '0 !important',
+    cursor: 'se-resize !important',
+    zIndex: 100,
+    background: 'none !important',
+  },
+  '.react-grid-item > .react-resizable-handle::after': {
+    content: '"" !important',
+    position: 'absolute !important',
+    right: '3px !important',
+    bottom: '3px !important',
+    width: '8px !important',
+    height: '8px !important',
+    borderRight: '2px solid rgba(160, 160, 160, 0.7) !important',
+    borderBottom: '2px solid rgba(160, 160, 160, 0.7) !important',
+    pointerEvents: 'none',
+  },
+  '.react-grid-item:hover > .react-resizable-handle::after': {
+    borderColor: 'rgba(100, 220, 180, 1) !important',
+  },
+  // Hide east/south-only handles if present — we only want se
+  '.react-grid-item > .react-resizable-handle-e, .react-grid-item > .react-resizable-handle-s':
+    {
+      display: 'none !important',
+    },
+};
 
 interface RglEditWrapperProps {
   resolvedPanels: ResolvedPanel[];
@@ -145,8 +153,8 @@ export const RglEditWrapper = React.memo(function RglEditWrapper({
 
   return (
     <Box sx={{ position: 'relative', minHeight: 400 }}>
-      {/* Inject custom resize handle styles */}
-      <style>{RGL_RESIZE_STYLES}</style>
+      {/* Inject resize handle styles via MUI GlobalStyles for proper specificity */}
+      <GlobalStyles styles={rglResizeGlobalStyles} />
       <React.Suspense
         fallback={<Box sx={{ p: 4, textAlign: 'center' }}>Loading editor...</Box>}
       >
@@ -158,22 +166,6 @@ export const RglEditWrapper = React.memo(function RglEditWrapper({
           rowHeight={pageLayout.rowHeight}
           onLayoutChange={handleLayoutChange}
           draggableHandle=".panel-drag-handle"
-          resizeHandles={['se', 'e', 's']}
-          resizeHandle={(h: string, ref: React.Ref<HTMLSpanElement>) => (
-            <span
-              ref={ref}
-              className={`react-resizable-handle react-resizable-handle-${h}`}
-              style={{
-                position: 'absolute',
-                zIndex: 100,
-                ...(h === 'se'
-                  ? { bottom: 0, right: 0, width: 20, height: 20, cursor: 'se-resize' }
-                  : h === 'e'
-                    ? { top: 0, right: 0, bottom: 0, width: 8, cursor: 'ew-resize' }
-                    : { left: 0, right: 0, bottom: 0, height: 8, cursor: 'ns-resize' }),
-              }}
-            />
-          )}
           margin={[16, 16]}
           containerPadding={[0, 0]}
           useCSSTransforms={false}
@@ -181,10 +173,7 @@ export const RglEditWrapper = React.memo(function RglEditWrapper({
           {resolvedPanels
             .filter((p) => p.layout.visible)
             .map(({ definition, layout }) => (
-              <div
-                key={definition.id}
-                style={{ position: 'relative', width: '100%', height: '100%' }}
-              >
+              <div key={definition.id}>
                 <PanelWrapper
                   definition={definition}
                   layout={layout}

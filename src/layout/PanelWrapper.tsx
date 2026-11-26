@@ -99,32 +99,6 @@ export const PanelWrapper = React.memo(function PanelWrapper({
         </Suspense>
       </Box>
 
-      {/* Resize handle (edit mode only, not for locked panels) */}
-      {isEditMode && !isLocked && (
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
-            width: 16,
-            height: 16,
-            cursor: 'se-resize',
-            zIndex: 2,
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              bottom: 4,
-              right: 4,
-              width: 8,
-              height: 8,
-              borderRight: '2px solid',
-              borderBottom: '2px solid',
-              borderColor: 'text.disabled',
-            },
-          }}
-          className="panel-resize-handle"
-        />
-      )}
-    </Paper>
+      </Paper>
   );
 });
