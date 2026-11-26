@@ -6,8 +6,14 @@ export interface PanelLayout {
   h: number; // height in grid rows
   minW?: number; // minimum width override
   minH?: number; // minimum height override
+  maxW?: number; // maximum width constraint
+  maxH?: number; // maximum height constraint
+  resizeHandles?: ResizeHandleAxis[]; // allowed resize directions
   visible: boolean; // false = hidden from view
 }
+
+/** Axes on which a panel may be resized */
+export type ResizeHandleAxis = 'se' | 'e' | 's' | 'n' | 'w' | 'ne' | 'nw' | 'sw';
 
 export interface PageLayout {
   pageId: string; // matches PAGE_REGISTRY entry id

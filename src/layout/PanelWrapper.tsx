@@ -1,15 +1,41 @@
-import React, { Suspense } from 'react';
-import { Box, Typography, Paper, Skeleton } from '@mui/material';
+import React, { Suspense, useState, useCallback } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Skeleton,
+  IconButton,
+  Tooltip,
+  Menu,
+  MenuItem,
+  Divider,
+} from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import SettingsIcon from '@mui/icons-material/Settings';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import GridOnIcon from '@mui/icons-material/GridOn';
 import type { PanelDefinition, PanelLayout } from './types';
 
 interface PanelWrapperProps {
   definition: PanelDefinition;
   layout: PanelLayout;
   isEditMode: boolean;
+  /** Callback when per-panel layout changes (resize presets, lock, etc.) */
+  onPanelLayoutChange?: (panelId: string, updates: Partial<PanelLayout>) => void;
   children?: React.ReactNode;
 }
+
+/** Preset size options shown in the per-panel menu */
+const SIZE_PRESETS = [
+  { label: 'Small', w: 3, h: 3 },
+  { label: 'Medium', w: 4, h: 4 },
+  { label: 'Large', w: 6, h: 5 },
+  { label: 'Full Width', w: 12, h: 4 },
+] as const;
 
 function PanelSkeletonFallback() {
   return (
@@ -24,14 +50,55 @@ export const PanelWrapper = React.memo(function PanelWrapper({
   definition,
   layout,
   isEditMode,
+  onPanelLayoutChange,
 }: PanelWrapperProps) {
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+  const handleMenuOpen = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+  }, []);
+
+  const handleMenuClose = useCallback(() => {
+    setMenuAnchor(null);
+  }, []);
+
+  const handlePresetClick = useCallback(
+    (w: number, h: number) => {
+      onPanelLayoutChange?.(definition.id, { w, h });
+      handleMenuClose();
+    },
+    [definition.id, onPanelLayoutChange, handleMenuClose],
+  );
+
+  const handleToggleLock = useCallback(() => {
+    // Toggle a runtime lock stored in layout (separate from definition.locked)
+    const currentLocked = (layout as Record<string, unknown>).runtimeLocked === true;
+    onPanelLayoutChange?.(definition.id, {
+      // We store runtime lock as an extra field; migration not needed since it's optional UI state
+      ...({ runtimeLocked: !currentLocked } as Partial<PanelLayout>),
+    });
+    handleMenuClose();
+  }, [definition.id, layout, onPanelLayoutChange, handleMenuClose]);
+
+  const handleSnapToggle = useCallback(() => {
+    const currentSnap = (layout as Record<string, unknown>).snapToGrid !== false;
+    onPanelLayoutChange?.(definition.id, {
+      ...({ snapToGrid: !currentSnap } as Partial<PanelLayout>),
+    });
+    handleMenuClose();
+  }, [definition.id, layout, onPanelLayoutChange, handleMenuClose]);
+
   if (!layout.visible) return null;
 
   const PanelComponent = definition.component;
-  const isLocked = definition.locked === true;
+  const isDefLocked = definition.locked === true;
+  const isRuntimeLocked = (layout as Record<string, unknown>).runtimeLocked === true;
+  const isLocked = isDefLocked || isRuntimeLocked;
+  const snapEnabled = (layout as Record<string, unknown>).snapToGrid !== false;
 
   // Locked navigation panels render without Paper chrome for seamless integration
-  if (isLocked && !isEditMode) {
+  if (isDefLocked && !isEditMode) {
     return (
       <Box sx={{ height: '100%' }}>
         <Suspense fallback={<PanelSkeletonFallback />}>
@@ -76,8 +143,103 @@ export const PanelWrapper = React.memo(function PanelWrapper({
         <Typography variant="subtitle2" sx={{ flexGrow: 1, fontWeight: 600 }}>
           {definition.title}
         </Typography>
-        {isEditMode && !isLocked && (
-          <VisibilityOffIcon fontSize="small" color="action" sx={{ cursor: 'pointer' }} />
+
+        {/* Per-panel controls in edit mode */}
+        {isEditMode && (
+          <>
+            <Tooltip title={isLocked ? 'Unlock panel' : 'Lock panel'}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isDefLocked) handleToggleLock();
+                }}
+                disabled={isDefLocked}
+                aria-label={isLocked ? 'unlock panel' : 'lock panel'}
+              >
+                {isLocked ? (
+                  <LockIcon fontSize="small" color={isDefLocked ? 'disabled' : 'action'} />
+                ) : (
+                  <LockOpenIcon fontSize="small" color="action" />
+                )}
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Panel settings">
+              <IconButton
+                size="small"
+                onClick={handleMenuOpen}
+                aria-label="panel settings"
+                aria-controls={menuAnchor ? 'panel-settings-menu' : undefined}
+                aria-haspopup="true"
+              >
+                <SettingsIcon fontSize="small" color="action" />
+              </IconButton>
+            </Tooltip>
+
+            {!isLocked && (
+              <Tooltip title="Hide panel">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPanelLayoutChange?.(definition.id, { visible: false });
+                  }}
+                  aria-label="hide panel"
+                >
+                  <VisibilityOffIcon fontSize="small" color="action" />
+                </IconButton>
+              </Tooltip>
+            )}
+
+            <Menu
+              id="panel-settings-menu"
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={handleMenuClose}
+              onClick={(e) => e.stopPropagation()}
+              slotProps={{ paper: { sx: { minWidth: 180 } } }}
+            >
+              <MenuItem disabled>
+                <Typography variant="caption" color="text.secondary">
+                  Size Presets
+                </Typography>
+              </MenuItem>
+              {SIZE_PRESETS.map((preset) => (
+                <MenuItem
+                  key={preset.label}
+                  onClick={() => handlePresetClick(preset.w, preset.h)}
+                  disabled={isLocked}
+                >
+                  <AspectRatioIcon fontSize="small" sx={{ mr: 1 }} />
+                  {preset.label} ({preset.w}x{preset.h})
+                </MenuItem>
+              ))}
+              <Divider />
+              <MenuItem onClick={handleSnapToggle} disabled={isLocked}>
+                <GridOnIcon
+                  fontSize="small"
+                  sx={{ mr: 1, color: snapEnabled ? 'primary.main' : 'action.disabled' }}
+                />
+                Snap to Grid: {snapEnabled ? 'On' : 'Off'}
+              </MenuItem>
+              {!isDefLocked && (
+                <MenuItem onClick={handleToggleLock}>
+                  {isRuntimeLocked ? (
+                    <>
+                      <LockOpenIcon fontSize="small" sx={{ mr: 1 }} />
+                      Unlock Panel
+                    </>
+                  ) : (
+                    <>
+                      <LockIcon fontSize="small" sx={{ mr: 1 }} />
+                      Lock Panel
+                    </>
+                  )}
+                </MenuItem>
+              )}
+            </Menu>
+          </>
         )}
       </Box>
 
@@ -98,7 +260,6 @@ export const PanelWrapper = React.memo(function PanelWrapper({
           <PanelComponent panelId={definition.id} />
         </Suspense>
       </Box>
-
-      </Paper>
+    </Paper>
   );
 });

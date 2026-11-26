@@ -1,4 +1,4 @@
-export type { PanelLayout, PageLayout, PanelDefinition } from './types';
+export type { PanelLayout, PageLayout, PanelDefinition, ResizeHandleAxis } from './types';
 export { loadPageLayout, savePageLayout, resetPageLayout } from './layoutStorage';
 export { computeDefaultLayout } from './defaultLayouts';
 export { CURRENT_VERSION } from './migrations';
