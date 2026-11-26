@@ -28,6 +28,18 @@ export const PanelWrapper = React.memo(function PanelWrapper({
   if (!layout.visible) return null;
 
   const PanelComponent = definition.component;
+  const isLocked = definition.locked === true;
+
+  // Locked navigation panels render without Paper chrome for seamless integration
+  if (isLocked && !isEditMode) {
+    return (
+      <Box sx={{ height: '100%' }}>
+        <Suspense fallback={<PanelSkeletonFallback />}>
+          <PanelComponent panelId={definition.id} />
+        </Suspense>
+      </Box>
+    );
+  }
 
   return (
     <Paper
@@ -64,7 +76,7 @@ export const PanelWrapper = React.memo(function PanelWrapper({
         <Typography variant="subtitle2" sx={{ flexGrow: 1, fontWeight: 600 }}>
           {definition.title}
         </Typography>
-        {isEditMode && !definition.locked && (
+        {isEditMode && !isLocked && (
           <VisibilityOffIcon fontSize="small" color="action" sx={{ cursor: 'pointer' }} />
         )}
       </Box>
@@ -87,8 +99,8 @@ export const PanelWrapper = React.memo(function PanelWrapper({
         </Suspense>
       </Box>
 
-      {/* Resize handle (edit mode only) */}
-      {isEditMode && (
+      {/* Resize handle (edit mode only, not for locked panels) */}
+      {isEditMode && !isLocked && (
         <Box
           sx={{
             position: 'absolute',
