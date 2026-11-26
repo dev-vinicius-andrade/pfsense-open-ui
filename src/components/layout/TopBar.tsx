@@ -5,9 +5,13 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import CodeIcon from '@mui/icons-material/Code';
 import SearchIcon from '@mui/icons-material/Search';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
 import { useState, lazy, Suspense } from 'react';
 import { useUiStore } from '@/stores/uiStore';
 import { useAuth } from '@/auth/useAuth';
+import { hasRegisteredPanels } from '@/layout/panelRegistry';
+import { useCurrentPageId } from '@/layout/useCurrentPageId';
 
 const TerminalFloatingPanel = lazy(() =>
  import('@/components/terminal/TerminalFloatingPanel').then((m) => ({ default: m.TerminalFloatingPanel })),
@@ -20,9 +24,11 @@ interface TopBarProps {
 }
 
 export function TopBar({ onSearchClick }: TopBarProps) {
-  const { toggleSidebar, themeMode, setThemeMode, floatingTerminalOpen, toggleFloatingTerminal } = useUiStore();
+  const { toggleSidebar, themeMode, setThemeMode, floatingTerminalOpen, toggleFloatingTerminal, layoutEditMode, toggleLayoutEditMode } = useUiStore();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const currentPageId = useCurrentPageId();
+  const canEditLayout = currentPageId !== undefined && hasRegisteredPanels(currentPageId);
 
   const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
   const shortcutHint = isMac ? '⌘K' : 'Ctrl+K';
@@ -87,6 +93,17 @@ export function TopBar({ onSearchClick }: TopBarProps) {
               {shortcutHint}
             </Typography>
           </Box>
+
+          {canEditLayout && (
+            <IconButton
+              color={layoutEditMode ? 'primary' : 'inherit'}
+              aria-label={layoutEditMode ? 'exit layout edit mode' : 'enter layout edit mode'}
+              onClick={toggleLayoutEditMode}
+              title={layoutEditMode ? 'Exit Edit Mode' : 'Edit Layout'}
+            >
+              {layoutEditMode ? <CheckIcon /> : <EditIcon />}
+            </IconButton>
+          )}
 
           {hasTerminalPrivilege && (
             <IconButton

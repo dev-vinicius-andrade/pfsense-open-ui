@@ -11,12 +11,15 @@ interface UiState {
   themeMode: 'light' | 'dark';
   breadcrumbs: BreadcrumbItem[];
   floatingTerminalOpen: boolean;
+  layoutEditMode: boolean;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   setThemeMode: (mode: 'light' | 'dark') => void;
   setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
   toggleFloatingTerminal: () => void;
   setFloatingTerminalOpen: (open: boolean) => void;
+  toggleLayoutEditMode: () => void;
+  setLayoutEditMode: (enabled: boolean) => void;
 }
 
 export const useUiStore = create<UiState>()(
@@ -26,12 +29,15 @@ export const useUiStore = create<UiState>()(
       themeMode: 'light',
       breadcrumbs: [],
       floatingTerminalOpen: false,
+      layoutEditMode: false,
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setThemeMode: (mode) => set({ themeMode: mode }),
       setBreadcrumbs: (breadcrumbs) => set({ breadcrumbs }),
       toggleFloatingTerminal: () => set((state) => ({ floatingTerminalOpen: !state.floatingTerminalOpen })),
       setFloatingTerminalOpen: (open) => set({ floatingTerminalOpen: open }),
+      toggleLayoutEditMode: () => set((state) => ({ layoutEditMode: !state.layoutEditMode })),
+      setLayoutEditMode: (enabled) => set({ layoutEditMode: enabled }),
     }),
     {
       name: 'pfsense-ui',
