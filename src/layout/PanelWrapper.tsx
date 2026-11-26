@@ -46,7 +46,7 @@ export const PanelWrapper = React.memo(function PanelWrapper({
       elevation={isEditMode ? 2 : 1}
       sx={{
         height: '100%',
-        overflow: 'hidden',
+        overflow: isEditMode ? 'visible' : 'hidden',
         display: 'flex',
         flexDirection: 'column',
         border: isEditMode ? '2px dashed' : '1px solid',

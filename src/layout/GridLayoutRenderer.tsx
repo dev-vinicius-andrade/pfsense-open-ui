@@ -74,7 +74,10 @@ export const GridLayoutRenderer = React.memo(function GridLayoutRenderer({
             sx={{
               gridColumn: `${clampedX + 1} / span ${clampedW}`,
               gridRow: `${layout.y + 1} / span ${layout.h}`,
+              height: layout.h * rowHeight,
               minHeight: layout.h * rowHeight,
+              maxHeight: layout.h * rowHeight,
+              overflow: 'hidden',
             }}
           >
             <PanelWrapper definition={definition} layout={layout} isEditMode={isEditMode} />
