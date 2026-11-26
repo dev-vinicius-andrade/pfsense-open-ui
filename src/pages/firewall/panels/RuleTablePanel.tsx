@@ -18,6 +18,8 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -87,10 +89,12 @@ interface SortableRowProps {
   onToggle: (rule: FirewallRule) => void;
   onEdit: (rule: FirewallRule) => void;
   onDelete: (rule: FirewallRule) => void;
+  isMobile: boolean;
+  isTablet: boolean;
 }
 
-function SortableRow({ rule, onToggle, onEdit, onDelete }: SortableRowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: rule.id });
+function SortableRow({ rule, onToggle, onEdit, onDelete, isMobile, isTablet }: SortableRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: rule.id, disabled: isMobile });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -99,11 +103,14 @@ function SortableRow({ rule, onToggle, onEdit, onDelete }: SortableRowProps) {
 
   return (
     <TableRow ref={setNodeRef} style={style} {...attributes}>
-      <TableCell sx={{ width: 48 }}>
-        <IconButton size="small" {...listeners} aria-label="Drag to reorder">
-          <DragIndicatorIcon fontSize="small" />
-        </IconButton>
-      </TableCell>
+      {/* Drag handle: hidden on mobile */}
+      {!isMobile && (
+        <TableCell sx={{ width: 48 }}>
+          <IconButton size="small" {...listeners} aria-label="Drag to reorder">
+            <DragIndicatorIcon fontSize="small" />
+          </IconButton>
+        </TableCell>
+      )}
       <TableCell sx={{ width: 64 }}>
         <Switch
           checked={rule.enabled}
@@ -122,22 +129,27 @@ function SortableRow({ rule, onToggle, onEdit, onDelete }: SortableRowProps) {
       </TableCell>
       <TableCell>{rule.protocol.toUpperCase()}</TableCell>
       <TableCell>
-        <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
+        <Typography variant="body2" noWrap sx={{ maxWidth: isMobile ? 100 : 150 }}>
           {formatAddress(rule.source_type, rule.source_address)}
         </Typography>
       </TableCell>
       <TableCell>
-        <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
+        <Typography variant="body2" noWrap sx={{ maxWidth: isMobile ? 100 : 150 }}>
           {formatAddress(rule.destination_type, rule.destination_address)}
         </Typography>
       </TableCell>
-      <TableCell>{rule.destination_port || '*'}</TableCell>
-      <TableCell>{rule.schedule || '-'}</TableCell>
-      <TableCell>
-        <Typography variant="body2" noWrap sx={{ maxWidth: 200 }} title={rule.description}>
-          {rule.description || '-'}
-        </Typography>
-      </TableCell>
+      {/* Port: hidden on mobile */}
+      {!isMobile && <TableCell>{rule.destination_port || '*'}</TableCell>}
+      {/* Schedule: hidden on tablet and mobile */}
+      {!isMobile && !isTablet && <TableCell>{rule.schedule || '-'}</TableCell>}
+      {/* Description: hidden on mobile */}
+      {!isMobile && (
+        <TableCell>
+          <Typography variant="body2" noWrap sx={{ maxWidth: 200 }} title={rule.description}>
+            {rule.description || '-'}
+          </Typography>
+        </TableCell>
+      )}
       <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
         <Tooltip title="Edit">
           <IconButton size="small" onClick={() => onEdit(rule)} aria-label="Edit rule">
@@ -166,6 +178,9 @@ interface RuleTablePanelProps {
 }
 
 export function RuleTablePanel({ panelId }: RuleTablePanelProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
   const [searchParams] = useSearchParams();
@@ -326,15 +341,19 @@ export function RuleTablePanel({ panelId }: RuleTablePanelProps) {
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ width: 48 }} />
+                  {/* Drag handle: hidden on mobile (no drag reorder on touch) */}
+                  {!isMobile && <TableCell sx={{ width: 48 }} />}
                   <TableCell sx={{ width: 64 }}>On</TableCell>
                   <TableCell>Action</TableCell>
                   <TableCell>Protocol</TableCell>
                   <TableCell>Source</TableCell>
                   <TableCell>Destination</TableCell>
-                  <TableCell>Port</TableCell>
-                  <TableCell>Schedule</TableCell>
-                  <TableCell>Description</TableCell>
+                  {/* Port: hidden on mobile */}
+                  {!isMobile && <TableCell>Port</TableCell>}
+                  {/* Schedule: hidden on tablet and mobile */}
+                  {!isMobile && !isTablet && <TableCell>Schedule</TableCell>}
+                  {/* Description: hidden on mobile */}
+                  {!isMobile && <TableCell>Description</TableCell>}
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -346,6 +365,8 @@ export function RuleTablePanel({ panelId }: RuleTablePanelProps) {
                     onToggle={handleToggle}
                     onEdit={handleEdit}
                     onDelete={(r) => setDeleteTarget(r)}
+                    isMobile={isMobile}
+                    isTablet={isTablet}
                   />
                 ))}
               </TableBody>

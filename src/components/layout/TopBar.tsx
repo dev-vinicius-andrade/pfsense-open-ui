@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, IconButton, Typography, Box, Menu, MenuItem, Chip } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Box, Menu, MenuItem, Chip, useMediaQuery, useTheme } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -24,6 +24,9 @@ interface TopBarProps {
 }
 
 export function TopBar({ onSearchClick }: TopBarProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const { toggleSidebar, themeMode, setThemeMode, floatingTerminalOpen, toggleFloatingTerminal, layoutEditMode, toggleLayoutEditMode } = useUiStore();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -74,7 +77,10 @@ export function TopBar({ onSearchClick }: TopBarProps) {
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Chip label="System OK" size="small" color="success" variant="outlined" />
+          {/* Status chip: hidden on mobile to save space */}
+          {!isMobile && (
+            <Chip label="System OK" size="small" color="success" variant="outlined" />
+          )}
 
           <Box sx={{ display: 'flex', alignItems: 'center', mr: 0.5 }}>
             <IconButton
@@ -85,13 +91,16 @@ export function TopBar({ onSearchClick }: TopBarProps) {
             >
               <SearchIcon />
             </IconButton>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ ml: 0.5, fontFamily: 'monospace', opacity: 0.7 }}
-            >
-              {shortcutHint}
-            </Typography>
+            {/* Keyboard shortcut hint: hidden on mobile/tablet */}
+            {!isMobile && !isTablet && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ ml: 0.5, fontFamily: 'monospace', opacity: 0.7 }}
+              >
+                {shortcutHint}
+              </Typography>
+            )}
           </Box>
 
           {canEditLayout && (
@@ -105,7 +114,8 @@ export function TopBar({ onSearchClick }: TopBarProps) {
             </IconButton>
           )}
 
-          {hasTerminalPrivilege && (
+          {/* Terminal toggle: hidden on mobile */}
+          {!isMobile && hasTerminalPrivilege && (
             <IconButton
               color={floatingTerminalOpen ? 'primary' : 'inherit'}
               aria-label="toggle floating terminal"
