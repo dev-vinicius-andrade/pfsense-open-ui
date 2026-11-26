@@ -158,7 +158,22 @@ export const RglEditWrapper = React.memo(function RglEditWrapper({
           rowHeight={pageLayout.rowHeight}
           onLayoutChange={handleLayoutChange}
           draggableHandle=".panel-drag-handle"
-          resizeHandles={['se']}
+          resizeHandles={['se', 'e', 's']}
+          resizeHandle={(h: string, ref: React.Ref<HTMLSpanElement>) => (
+            <span
+              ref={ref}
+              className={`react-resizable-handle react-resizable-handle-${h}`}
+              style={{
+                position: 'absolute',
+                zIndex: 100,
+                ...(h === 'se'
+                  ? { bottom: 0, right: 0, width: 20, height: 20, cursor: 'se-resize' }
+                  : h === 'e'
+                    ? { top: 0, right: 0, bottom: 0, width: 8, cursor: 'ew-resize' }
+                    : { left: 0, right: 0, bottom: 0, height: 8, cursor: 'ns-resize' }),
+              }}
+            />
+          )}
           margin={[16, 16]}
           containerPadding={[0, 0]}
           useCSSTransforms={false}
