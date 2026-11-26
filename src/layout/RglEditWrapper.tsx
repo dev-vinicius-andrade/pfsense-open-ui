@@ -161,12 +161,15 @@ export const RglEditWrapper = React.memo(function RglEditWrapper({
           resizeHandles={['se']}
           margin={[16, 16]}
           containerPadding={[0, 0]}
-          useCSSTransforms={true}
+          useCSSTransforms={false}
         >
           {resolvedPanels
             .filter((p) => p.layout.visible)
             .map(({ definition, layout }) => (
-              <div key={definition.id}>
+              <div
+                key={definition.id}
+                style={{ position: 'relative', width: '100%', height: '100%' }}
+              >
                 <PanelWrapper
                   definition={definition}
                   layout={layout}
