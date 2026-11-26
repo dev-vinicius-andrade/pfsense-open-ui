@@ -175,8 +175,8 @@ function toRglLayout(resolvedPanels: ResolvedPanel[], maxCols?: number): RglLayo
     .map((p) => {
       const isLocked =
         p.definition.locked === true ||
-        (p.layout as Record<string, unknown>).runtimeLocked === true;
-      const snapToGrid = (p.layout as Record<string, unknown>).snapToGrid !== false;
+        p.layout.runtimeLocked === true;
+      const snapToGrid = p.layout.snapToGrid !== false;
 
       const item: RglLayoutItem = {
         i: p.definition.id,

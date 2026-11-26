@@ -10,6 +10,8 @@ export interface PanelLayout {
   maxH?: number; // maximum height constraint
   resizeHandles?: ResizeHandleAxis[]; // allowed resize directions
   visible: boolean; // false = hidden from view
+  runtimeLocked?: boolean; // user-toggled lock (separate from definition.locked)
+  snapToGrid?: boolean; // per-panel snap toggle (default true)
 }
 
 /** Axes on which a panel may be resized */

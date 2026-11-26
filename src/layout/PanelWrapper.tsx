@@ -16,7 +16,6 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import AspectRatioIcon from '@mui/icons-material/AspectRatio';
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import type { PanelDefinition, PanelLayout } from './types';
 
@@ -73,18 +72,17 @@ export const PanelWrapper = React.memo(function PanelWrapper({
 
   const handleToggleLock = useCallback(() => {
     // Toggle a runtime lock stored in layout (separate from definition.locked)
-    const currentLocked = (layout as Record<string, unknown>).runtimeLocked === true;
+    const currentLocked = layout.runtimeLocked === true;
     onPanelLayoutChange?.(definition.id, {
-      // We store runtime lock as an extra field; migration not needed since it's optional UI state
-      ...({ runtimeLocked: !currentLocked } as Partial<PanelLayout>),
+      runtimeLocked: !currentLocked,
     });
     handleMenuClose();
   }, [definition.id, layout, onPanelLayoutChange, handleMenuClose]);
 
   const handleSnapToggle = useCallback(() => {
-    const currentSnap = (layout as Record<string, unknown>).snapToGrid !== false;
+    const currentSnap = layout.snapToGrid !== false;
     onPanelLayoutChange?.(definition.id, {
-      ...({ snapToGrid: !currentSnap } as Partial<PanelLayout>),
+      snapToGrid: !currentSnap,
     });
     handleMenuClose();
   }, [definition.id, layout, onPanelLayoutChange, handleMenuClose]);
@@ -93,9 +91,9 @@ export const PanelWrapper = React.memo(function PanelWrapper({
 
   const PanelComponent = definition.component;
   const isDefLocked = definition.locked === true;
-  const isRuntimeLocked = (layout as Record<string, unknown>).runtimeLocked === true;
+  const isRuntimeLocked = layout.runtimeLocked === true;
   const isLocked = isDefLocked || isRuntimeLocked;
-  const snapEnabled = (layout as Record<string, unknown>).snapToGrid !== false;
+  const snapEnabled = layout.snapToGrid !== false;
 
   // Locked navigation panels render without Paper chrome for seamless integration
   if (isDefLocked && !isEditMode) {
