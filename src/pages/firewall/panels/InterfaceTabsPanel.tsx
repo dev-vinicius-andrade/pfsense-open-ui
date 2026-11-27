@@ -1,25 +1,73 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Paper, Skeleton } from '@mui/material';
 import { ConfigurableTabs } from '@/components/shared/ConfigurableTabs';
 import { fetchInterfaces } from '@/api/modules/interfaces';
-import type { PanelLayout } from '@/layout/types';
 
 const FLOATING_TAB_KEY = '__floating__';
 const IFACE_PARAM = 'iface';
+const STORAGE_KEY = 'pfsense-layout-firewall';
+
+type TabOrientation = 'top' | 'bottom' | 'left' | 'right';
 
 interface InterfaceTabsPanelProps {
  panelId: string;
- /** Current panel layout — used to read persisted tabOrientation */
- layout?: PanelLayout;
 }
 
-export function InterfaceTabsPanel({ panelId, layout }: InterfaceTabsPanelProps) {
- const [searchParams, setSearchParams] = useSearchParams();
+/**
+ * Reads tabOrientation directly from localStorage for the firewall page layout.
+ * This bypasses the prop-passing chain through PanelWrapper → CanvasEditWrapper
+ * which has been unreliable due to CDN caching of intermediate builds.
+ */
+function usePersistedTabOrientation(panelId: string): TabOrientation {
+ const [orientation, setOrientation] = useState<TabOrientation>('top');
 
- // Read orientation from persisted layout data; default to 'top'
- const orientation = layout?.tabOrientation ?? 'top';
+ useEffect(() => {
+ try {
+ const raw = localStorage.getItem(STORAGE_KEY);
+ if (!raw) return;
+ const layout = JSON.parse(raw);
+ const panel = layout?.panels?.find((p: Record<string, unknown>) => p.id === panelId);
+ if (panel?.tabOrientation) {
+ setOrientation(panel.tabOrientation as TabOrientation);
+ }
+ } catch {
+ // Ignore parse errors
+ }
+ }, [panelId]);
+
+ // Also listen for storage events from other tabs or same-tab updates
+ useEffect(() => {
+ const handler = () => {
+ try {
+ const raw = localStorage.getItem(STORAGE_KEY);
+ if (!raw) return;
+ const layout = JSON.parse(raw);
+ const panel = layout?.panels?.find((p: Record<string, unknown>) => p.id === panelId);
+ if (panel?.tabOrientation) {
+ setOrientation(panel.tabOrientation as TabOrientation);
+ }
+ } catch {
+ // Ignore
+ }
+ };
+
+ // Poll every 500ms to catch same-tab localStorage writes
+ const interval = setInterval(handler, 500);
+ window.addEventListener('storage', handler);
+ return () => {
+ clearInterval(interval);
+ window.removeEventListener('storage', handler);
+ };
+ }, [panelId]);
+
+ return orientation;
+}
+
+export function InterfaceTabsPanel({ panelId }: InterfaceTabsPanelProps) {
+ const [searchParams, setSearchParams] = useSearchParams();
+ const orientation = usePersistedTabOrientation(panelId);
 
  const { data: interfacesData, isLoading } = useQuery({
  queryKey: ['interfaces'],
