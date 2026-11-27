@@ -243,7 +243,8 @@ export const PanelWrapper = React.memo(function PanelWrapper({
   const snapEnabled = layout.snapToGrid !== false;
   const canResize = isEditMode && !isLocked;
 
-  // Locked navigation panels render without Paper chrome for seamless integration
+  // Locked navigation panels render without Paper chrome in read-only mode for seamless integration.
+  // In edit mode, they still get the full header so users can access layout settings (e.g. tab orientation).
   if (isDefLocked && !isEditMode) {
     return (
       <Box sx={{ height: '100%' }}>
