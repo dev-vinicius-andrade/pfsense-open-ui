@@ -9,6 +9,9 @@ import {
   Menu,
   MenuItem,
   Divider,
+  ListSubheader,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -17,6 +20,9 @@ import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import AspectRatioIcon from '@mui/icons-material/AspectRatio';
 import GridOnIcon from '@mui/icons-material/GridOn';
+import FitScreenIcon from '@mui/icons-material/FitScreen';
+import HeightIcon from '@mui/icons-material/Height';
+import AlignHorizontalLeftIcon from '@mui/icons-material/AlignHorizontalLeft';
 import type { PanelDefinition, PanelLayout, PageLayout } from './types';
 
 interface PanelWrapperProps {
@@ -117,6 +123,21 @@ export const PanelWrapper = React.memo(function PanelWrapper({
     });
     handleMenuClose();
   }, [definition.id, layout, onPanelLayoutChange, handleMenuClose]);
+
+  const handleFitWidth = useCallback(() => {
+    onPanelLayoutChange?.(definition.id, { x: 0, width: '100%' });
+    handleMenuClose();
+  }, [definition.id, onPanelLayoutChange, handleMenuClose]);
+
+  const handleFitHeight = useCallback(() => {
+    onPanelLayoutChange?.(definition.id, { height: 400 });
+    handleMenuClose();
+  }, [definition.id, onPanelLayoutChange, handleMenuClose]);
+
+  const handleAlignLeft = useCallback(() => {
+    onPanelLayoutChange?.(definition.id, { x: 0 });
+    handleMenuClose();
+  }, [definition.id, onPanelLayoutChange, handleMenuClose]);
 
   // Custom resize mouse handlers — direct pixel math
   const handleResizeStart = useCallback(
@@ -380,6 +401,26 @@ export const PanelWrapper = React.memo(function PanelWrapper({
                     )}
                   </MenuItem>
                 )}
+                <Divider />
+                <ListSubheader>Layout</ListSubheader>
+                <MenuItem onClick={handleFitWidth} disabled={isLocked} aria-label="fit panel width to container">
+                  <ListItemIcon>
+                    <FitScreenIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Fit Width" />
+                </MenuItem>
+                <MenuItem onClick={handleFitHeight} disabled={isLocked} aria-label="fit panel height to standard size">
+                  <ListItemIcon>
+                    <HeightIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Fit Height" />
+                </MenuItem>
+                <MenuItem onClick={handleAlignLeft} disabled={isLocked} aria-label="align panel to left edge">
+                  <ListItemIcon>
+                    <AlignHorizontalLeftIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Align Left" />
+                </MenuItem>
               </Menu>
             </>
           )}
