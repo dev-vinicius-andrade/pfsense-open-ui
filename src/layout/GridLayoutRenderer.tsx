@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { PanelWrapper } from './PanelWrapper';
 import type { ResolvedPanel } from './usePagePanels';
+import { GRID_MARGIN } from './gridConstants';
 
 interface GridLayoutRendererProps {
   resolvedPanels: ResolvedPanel[];
@@ -12,9 +13,16 @@ interface GridLayoutRendererProps {
 
 /**
  * Responsive grid layout renderer.
- * On mobile (< sm), panels stack vertically in a single column.
- * On tablet (sm–md), panels use a reduced column count.
- * On desktop (>= md), panels use the full configured column count.
+ * Synchronized with RGL's layout algorithm so read-only view matches edit mode exactly.
+ *
+ * RGL positions items using:
+ *   left = x * (colWidth + marginX) + containerPaddingX
+ *   top = y * (rowHeight + marginY) + containerPaddingY
+ *   width = w * colWidth + (w - 1) * marginX
+ *   height = h * rowHeight + (h - 1) * marginY
+ *
+ * We replicate this with CSS Grid by using the same margin as gap and matching
+ * row sizing to RGL's rowHeight. Container padding matches RGL's containerPadding=[0,0].
  */
 export const GridLayoutRenderer = React.memo(function GridLayoutRenderer({
   resolvedPanels,
@@ -28,8 +36,11 @@ export const GridLayoutRenderer = React.memo(function GridLayoutRenderer({
 
   const visiblePanels = resolvedPanels.filter((p) => p.layout.visible);
 
-  // Responsive column count
-  const effectiveColumns = isMobile ? 1 : isTablet ? Math.min(columns, 6) : columns;
+  // Responsive column count — matches RGL breakpoints
+  const effectiveColumns = isMobile ? 1 : isTablet ? Math.min(columns, 8) : columns;
+
+  const marginX = GRID_MARGIN[0];
+  const marginY = GRID_MARGIN[1];
 
   // On mobile, render panels as a simple vertical stack ignoring grid positions
   if (isMobile) {
@@ -38,7 +49,7 @@ export const GridLayoutRenderer = React.memo(function GridLayoutRenderer({
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 2,
+          gap: `${marginY}px`,
           position: 'relative',
           minHeight: 200,
         }}
@@ -52,13 +63,29 @@ export const GridLayoutRenderer = React.memo(function GridLayoutRenderer({
     );
   }
 
+  /**
+   * CSS Grid approach synchronized with RGL:
+   * - gap matches RGL margin exactly
+   * - grid-auto-rows matches RGL rowHeight
+   * - No container padding (matches containerPadding=[0,0])
+   * - Each cell spans the correct number of columns/rows
+   *
+   * With CSS Grid gap, the browser automatically accounts for gaps between tracks.
+   * A panel spanning w columns gets: w * trackSize + (w-1) * gap
+   * This matches RGL's: w * colWidth + (w-1) * marginX
+   * when trackSize = colWidth (which CSS Grid ensures with 1fr tracks and matching gap).
+   *
+   * For rows: RGL uses rowHeight per unit plus margin between.
+   * CSS grid-auto-rows sets the track size. With gap = marginY,
+   * a panel spanning h rows gets: h * rowHeight + (h-1) * marginY — matching RGL.
+   */
   return (
     <Box
       sx={{
         display: 'grid',
         gridTemplateColumns: `repeat(${effectiveColumns}, 1fr)`,
         gridAutoRows: `${rowHeight}px`,
-        gap: 2,
+        gap: `${marginY}px ${marginX}px`,
         position: 'relative',
         minHeight: 400,
       }}
@@ -66,7 +93,9 @@ export const GridLayoutRenderer = React.memo(function GridLayoutRenderer({
       {visiblePanels.map(({ definition, layout }) => {
         // Clamp grid positions to effective columns on tablet
         const clampedX = isTablet ? Math.min(layout.x, effectiveColumns - 1) : layout.x;
-        const clampedW = isTablet ? Math.min(layout.w, effectiveColumns - clampedX) : layout.w;
+        const clampedW = isTablet
+          ? Math.min(layout.w, effectiveColumns - clampedX)
+          : layout.w;
 
         return (
           <Box
@@ -74,9 +103,6 @@ export const GridLayoutRenderer = React.memo(function GridLayoutRenderer({
             sx={{
               gridColumn: `${clampedX + 1} / span ${clampedW}`,
               gridRow: `${layout.y + 1} / span ${layout.h}`,
-              height: layout.h * rowHeight,
-              minHeight: layout.h * rowHeight,
-              maxHeight: layout.h * rowHeight,
               overflow: 'hidden',
             }}
           >
