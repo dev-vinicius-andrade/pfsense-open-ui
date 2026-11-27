@@ -1,120 +1,79 @@
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Box, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Paper, Skeleton, Tooltip } from '@mui/material';
-import ViewColumnIcon from '@mui/icons-material/ViewColumn';
-import TableRowsIcon from '@mui/icons-material/TableRows';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Paper, Skeleton } from '@mui/material';
 import { ConfigurableTabs } from '@/components/shared/ConfigurableTabs';
 import { fetchInterfaces } from '@/api/modules/interfaces';
+import type { PanelLayout } from '@/layout/types';
 
 const FLOATING_TAB_KEY = '__floating__';
 const IFACE_PARAM = 'iface';
 
-type TabOrientation = 'top' | 'bottom' | 'left' | 'right';
-
 interface InterfaceTabsPanelProps {
-  panelId: string;
+ panelId: string;
+ /** Current panel layout — used to read persisted tabOrientation */
+ layout?: PanelLayout;
 }
 
-export function InterfaceTabsPanel({ panelId }: InterfaceTabsPanelProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [orientation, setOrientation] = useState<TabOrientation>('top');
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+export function InterfaceTabsPanel({ panelId, layout }: InterfaceTabsPanelProps) {
+ const [searchParams, setSearchParams] = useSearchParams();
 
-  const { data: interfacesData, isLoading } = useQuery({
-    queryKey: ['interfaces'],
-    queryFn: fetchInterfaces,
-  });
+ // Read orientation from persisted layout data; default to 'top'
+ const orientation = layout?.tabOrientation ?? 'top';
 
-  const interfaces = interfacesData ?? [];
+ const { data: interfacesData, isLoading } = useQuery({
+ queryKey: ['interfaces'],
+ queryFn: fetchInterfaces,
+ });
 
-  const tabs = useMemo(() => {
-    const result: Array<{ id: string; label: string }> = [];
-    for (const iface of interfaces) {
-      result.push({ id: iface.id, label: iface.descr || iface.id });
-    }
-    result.push({ id: FLOATING_TAB_KEY, label: 'Floating Rules' });
-    return result;
-  }, [interfaces]);
+ const interfaces = interfacesData ?? [];
 
-  const activeTabKey = useMemo(() => {
-    const paramValue = searchParams.get(IFACE_PARAM);
-    if (paramValue && tabs.some((t) => t.id === paramValue)) {
-      return paramValue;
-    }
-    return tabs.length > 0 ? tabs[0].id : FLOATING_TAB_KEY;
-  }, [searchParams, tabs]);
+ const tabs = useMemo(() => {
+ const result: Array<{ id: string; label: string }> = [];
+ for (const iface of interfaces) {
+ result.push({ id: iface.id, label: iface.descr || iface.id });
+ }
+ result.push({ id: FLOATING_TAB_KEY, label: 'Floating Rules' });
+ return result;
+ }, [interfaces]);
 
-  const handleTabChange = useCallback(
-    (tabId: string) => {
-      setSearchParams({ [IFACE_PARAM]: tabId }, { replace: true });
-    },
-    [setSearchParams],
-  );
+ const activeTabKey = useMemo(() => {
+ const paramValue = searchParams.get(IFACE_PARAM);
+ if (paramValue && tabs.some((t) => t.id === paramValue)) {
+ return paramValue;
+ }
+ return tabs.length > 0 ? tabs[0].id : FLOATING_TAB_KEY;
+ }, [searchParams, tabs]);
 
-  const handleMenuOpen = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    setMenuAnchor(e.currentTarget);
-  }, []);
+ const handleTabChange = useCallback(
+ (tabId: string) => {
+ setSearchParams({ [IFACE_PARAM]: tabId }, { replace: true });
+ },
+ [setSearchParams],
+ );
 
-  const handleMenuClose = useCallback(() => {
-    setMenuAnchor(null);
-  }, []);
+ if (isLoading) {
+ return (
+ <Paper sx={{ p: 1, display: 'flex', gap: 1 }} data-panel-id={panelId}>
+ {[...Array(4)].map((_, i) => (
+ <Skeleton key={i} width={80} height={36} />
+ ))}
+ </Paper>
+ );
+ }
 
-  const handleSetOrientation = useCallback((o: TabOrientation) => {
-    setOrientation(o);
-    setMenuAnchor(null);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <Paper sx={{ p: 1, display: 'flex', gap: 1 }} data-panel-id={panelId}>
-        {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} width={80} height={36} />
-        ))}
-      </Paper>
-    );
-  }
-
-  return (
-    <Paper sx={{ overflow: 'hidden', position: 'relative' }} data-panel-id={panelId}>
-      {/* Orientation toggle button */}
-      <Box sx={{ position: 'absolute', top: 4, right: 4, zIndex: 2 }}>
-        <Tooltip title="Tab orientation">
-          <IconButton size="small" onClick={handleMenuOpen} aria-label="tab orientation">
-            <MoreVertIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
-          <MenuItem onClick={() => handleSetOrientation('top')} selected={orientation === 'top'}>
-            <ListItemIcon><TableRowsIcon fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Horizontal (Top)" />
-          </MenuItem>
-          <MenuItem onClick={() => handleSetOrientation('bottom')} selected={orientation === 'bottom'}>
-            <ListItemIcon><TableRowsIcon fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Horizontal (Bottom)" />
-          </MenuItem>
-          <MenuItem onClick={() => handleSetOrientation('left')} selected={orientation === 'left'}>
-            <ListItemIcon><ViewColumnIcon fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Vertical (Left)" />
-          </MenuItem>
-          <MenuItem onClick={() => handleSetOrientation('right')} selected={orientation === 'right'}>
-            <ListItemIcon><ViewColumnIcon fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Vertical (Right)" />
-          </MenuItem>
-        </Menu>
-      </Box>
-
-      <ConfigurableTabs
-        tabs={tabs}
-        activeTab={activeTabKey}
-        onTabChange={handleTabChange}
-        orientation={orientation}
-        ariaLabel="Firewall rules by interface"
-      >
-        {/* Content area intentionally empty — tabs are navigation only in this panel */}
-        <></>
-      </ConfigurableTabs>
-    </Paper>
-  );
+ return (
+ <Paper sx={{ overflow: 'hidden' }} data-panel-id={panelId}>
+ <ConfigurableTabs
+ tabs={tabs}
+ activeTab={activeTabKey}
+ onTabChange={handleTabChange}
+ orientation={orientation}
+ ariaLabel="Firewall rules by interface"
+ >
+ {/* Content area intentionally empty — tabs are navigation only in this panel */}
+ <></>
+ </ConfigurableTabs>
+ </Paper>
+ );
 }

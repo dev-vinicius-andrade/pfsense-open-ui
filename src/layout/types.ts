@@ -28,6 +28,7 @@ export interface PanelLayout {
   borderRadius?: number; // custom border radius in px
   headerBgColor?: string; // custom header background color
   textColor?: string; // custom text color override
+  tabOrientation?: 'top' | 'bottom' | 'left' | 'right'; // per-panel tab orientation override
 }
 
 /**

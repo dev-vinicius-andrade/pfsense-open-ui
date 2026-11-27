@@ -23,6 +23,8 @@ import GridOnIcon from '@mui/icons-material/GridOn';
 import FitScreenIcon from '@mui/icons-material/FitScreen';
 import HeightIcon from '@mui/icons-material/Height';
 import AlignHorizontalLeftIcon from '@mui/icons-material/AlignHorizontalLeft';
+import ViewColumnIcon from '@mui/icons-material/ViewColumn';
+import TableRowsIcon from '@mui/icons-material/TableRows';
 import type { PanelDefinition, PanelLayout, PageLayout } from './types';
 
 interface PanelWrapperProps {
@@ -421,6 +423,28 @@ export const PanelWrapper = React.memo(function PanelWrapper({
                   </ListItemIcon>
                   <ListItemText primary="Align Left" />
                 </MenuItem>
+                <Divider />
+                <ListSubheader>Tab Orientation</ListSubheader>
+                {(['top', 'bottom', 'left', 'right'] as const).map((o) => (
+                  <MenuItem
+                    key={o}
+                    selected={layout.tabOrientation === o}
+                    onClick={() => {
+                      onPanelLayoutChange?.(definition.id, { tabOrientation: o });
+                      handleMenuClose();
+                    }}
+                    disabled={isLocked}
+                  >
+                    <ListItemIcon>
+                      {o === 'left' || o === 'right' ? (
+                        <ViewColumnIcon fontSize="small" />
+                      ) : (
+                        <TableRowsIcon fontSize="small" />
+                      )}
+                    </ListItemIcon>
+                    <ListItemText primary={`${o.charAt(0).toUpperCase() + o.slice(1)}`} />
+                  </MenuItem>
+                ))}
               </Menu>
             </>
           )}
