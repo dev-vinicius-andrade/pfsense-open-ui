@@ -134,14 +134,14 @@ export function LayoutBuilder({ pageId, children }: LayoutBuilderProps) {
   const hiddenPanels = resolvedPanels.filter((p) => !p.layout.visible);
 
   return (
-    <Box sx={{ position: 'relative', minHeight: '100%' }}>
+    <Box sx={{ position: 'relative', minHeight: '100%', width: '100%' }}>
       {/* Grid overlay in edit mode */}
       {layoutEditMode && (
         <GridOverlay columns={pageLayout.columns} rowHeight={pageLayout.rowHeight} />
       )}
 
       {/* Main content area */}
-      <Box sx={{ position: 'relative', zIndex: 1 }}>
+      <Box sx={{ position: 'relative', zIndex: 1, width: '100%' }}>
         {layoutEditMode ? (
           <React.Suspense
             fallback={

@@ -88,6 +88,7 @@ export const GridLayoutRenderer = React.memo(function GridLayoutRenderer({
         gap: `${marginY}px ${marginX}px`,
         position: 'relative',
         minHeight: 400,
+        width: '100%',
       }}
     >
       {visiblePanels.map(({ definition, layout }) => {
