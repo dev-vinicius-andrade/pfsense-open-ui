@@ -249,7 +249,8 @@ export const PanelWrapper = React.memo(function PanelWrapper({
     return (
       <Box sx={{ height: '100%' }}>
         <Suspense fallback={<PanelSkeletonFallback />}>
-          <PanelComponent panelId={definition.id} />
+          {/* @ts-expect-error layout is passed for panels that accept it (e.g. InterfaceTabsPanel reads tabOrientation) */}
+          <PanelComponent panelId={definition.id} layout={layout} />
         </Suspense>
       </Box>
     );
