@@ -406,19 +406,19 @@ export const PanelWrapper = React.memo(function PanelWrapper({
                 )}
                 <Divider />
                 <ListSubheader>Layout</ListSubheader>
-                <MenuItem onClick={handleFitWidth} disabled={isLocked} aria-label="fit panel width to container">
+                <MenuItem onClick={handleFitWidth} disabled={isRuntimeLocked} aria-label="fit panel width to container">
                   <ListItemIcon>
                     <FitScreenIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText primary="Fit Width" />
                 </MenuItem>
-                <MenuItem onClick={handleFitHeight} disabled={isLocked} aria-label="fit panel height to standard size">
+                <MenuItem onClick={handleFitHeight} disabled={isRuntimeLocked} aria-label="fit panel height to standard size">
                   <ListItemIcon>
                     <HeightIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText primary="Fit Height" />
                 </MenuItem>
-                <MenuItem onClick={handleAlignLeft} disabled={isLocked} aria-label="align panel to left edge">
+                <MenuItem onClick={handleAlignLeft} disabled={isRuntimeLocked} aria-label="align panel to left edge">
                   <ListItemIcon>
                     <AlignHorizontalLeftIcon fontSize="small" />
                   </ListItemIcon>
@@ -434,7 +434,7 @@ export const PanelWrapper = React.memo(function PanelWrapper({
                       onPanelLayoutChange?.(definition.id, { tabOrientation: o });
                       handleMenuClose();
                     }}
-                    disabled={isLocked}
+                    disabled={isRuntimeLocked}
                   >
                     <ListItemIcon>
                       {o === 'left' || o === 'right' ? (
