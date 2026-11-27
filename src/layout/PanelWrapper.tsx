@@ -139,8 +139,11 @@ export const PanelWrapper = React.memo(function PanelWrapper({
         const deltaX = moveEvent.clientX - state.startX;
         const deltaY = moveEvent.clientY - state.startY;
 
+        // Use the LayoutBuilder container width, not the panel's own parent
+        // which shrinks as the panel resizes. Walk up to find the grid container.
+        const gridContainer = wrapperRef.current?.closest('.react-grid-layout') ?? wrapperRef.current?.parentElement;
         const colWidth =
-          (wrapperRef.current?.parentElement?.clientWidth ?? 800) / gridConfig.columns;
+          ((gridContainer as HTMLElement)?.clientWidth ?? 800) / gridConfig.columns;
         const rowPx = gridConfig.rowHeight + gridConfig.margin[1];
 
         let newW = state.startW;
