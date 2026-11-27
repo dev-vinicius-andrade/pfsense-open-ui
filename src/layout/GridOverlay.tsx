@@ -1,11 +1,12 @@
 import { Box } from '@mui/material';
 
 interface GridOverlayProps {
-  columns: number;
-  rowHeight: number;
+  snapGridSize: number;
 }
 
-export function GridOverlay({ columns, rowHeight }: GridOverlayProps) {
+export function GridOverlay({ snapGridSize }: GridOverlayProps) {
+  const gridSize = Math.max(1, snapGridSize);
+
   return (
     <Box
       sx={{
@@ -13,12 +14,12 @@ export function GridOverlay({ columns, rowHeight }: GridOverlayProps) {
         inset: 0,
         pointerEvents: 'none',
         zIndex: 0,
-        opacity: 0.15,
+        opacity: 0.12,
         backgroundImage: (theme) => `
           linear-gradient(to right, ${theme.palette.divider} 1px, transparent 1px),
           linear-gradient(to bottom, ${theme.palette.divider} 1px, transparent 1px)
         `,
-        backgroundSize: `${100 / columns}% ${rowHeight}px`,
+        backgroundSize: `${gridSize}px ${gridSize}px`,
       }}
     />
   );

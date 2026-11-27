@@ -17,29 +17,25 @@ import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import AspectRatioIcon from '@mui/icons-material/AspectRatio';
 import GridOnIcon from '@mui/icons-material/GridOn';
-import type { PanelDefinition, PanelLayout } from './types';
+import type { PanelDefinition, PanelLayout, PageLayout } from './types';
 
 interface PanelWrapperProps {
   definition: PanelDefinition;
   layout: PanelLayout;
   isEditMode: boolean;
+  /** Page-level canvas layout for snap grid size during resize */
+  pageLayout?: PageLayout;
   /** Callback when per-panel layout changes (resize presets, lock, etc.) */
   onPanelLayoutChange?: (panelId: string, updates: Partial<PanelLayout>) => void;
-  /** Grid configuration for custom resize calculations */
-  gridConfig?: {
-    columns: number;
-    rowHeight: number;
-    margin: [number, number];
-  };
   children?: React.ReactNode;
 }
 
-/** Preset size options shown in the per-panel menu */
+/** Preset size options shown in the per-panel menu (pixel-based) */
 const SIZE_PRESETS = [
-  { label: 'Small', w: 3, h: 3 },
-  { label: 'Medium', w: 4, h: 4 },
-  { label: 'Large', w: 6, h: 5 },
-  { label: 'Full Width', w: 12, h: 4 },
+  { label: 'Small', width: 300, height: 240 },
+  { label: 'Medium', width: 480, height: 320 },
+  { label: 'Large', width: 720, height: 400 },
+  { label: 'Full Width', width: '100%', height: 320 },
 ] as const;
 
 type ResizeDirection = 'e' | 's' | 'se';
@@ -48,8 +44,24 @@ interface ResizeState {
   direction: ResizeDirection;
   startX: number;
   startY: number;
-  startW: number;
-  startH: number;
+  startWidth: number;
+  startHeight: number;
+}
+
+/** Resolve a width value that may be a percentage string to a pixel number using a container reference. */
+function resolvePixelWidth(width: number | string, containerWidth: number): number {
+  if (typeof width === 'number') return width;
+  if (typeof width === 'string' && width.endsWith('%')) {
+    const pct = parseFloat(width);
+    return Number.isFinite(pct) ? (pct / 100) * containerWidth : containerWidth;
+  }
+  return containerWidth;
+}
+
+/** Snap a pixel value to the nearest grid increment. */
+function snapToGrid(value: number, gridSize: number): number {
+  if (gridSize <= 0) return value;
+  return Math.round(value / gridSize) * gridSize;
 }
 
 function PanelSkeletonFallback() {
@@ -65,8 +77,8 @@ export const PanelWrapper = React.memo(function PanelWrapper({
   definition,
   layout,
   isEditMode,
+  pageLayout,
   onPanelLayoutChange,
-  gridConfig,
 }: PanelWrapperProps) {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [activeResize, setActiveResize] = useState<ResizeDirection | null>(null);
@@ -83,8 +95,8 @@ export const PanelWrapper = React.memo(function PanelWrapper({
   }, []);
 
   const handlePresetClick = useCallback(
-    (w: number, h: number) => {
-      onPanelLayoutChange?.(definition.id, { w, h });
+    (width: number | string, height: number) => {
+      onPanelLayoutChange?.(definition.id, { width, height });
       handleMenuClose();
     },
     [definition.id, onPanelLayoutChange, handleMenuClose],
@@ -106,23 +118,26 @@ export const PanelWrapper = React.memo(function PanelWrapper({
     handleMenuClose();
   }, [definition.id, layout, onPanelLayoutChange, handleMenuClose]);
 
-  // Custom resize mouse handlers
+  // Custom resize mouse handlers — direct pixel math
   const handleResizeStart = useCallback(
     (direction: ResizeDirection) => (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
 
-      if (!gridConfig || !onPanelLayoutChange) return;
+      if (!onPanelLayoutChange) return;
 
       const isLocked = definition.locked === true || layout.runtimeLocked === true;
       if (isLocked) return;
+
+      const containerWidth = wrapperRef.current?.clientWidth ?? 800;
+      const currentWidthPx = resolvePixelWidth(layout.width, containerWidth);
 
       resizeStateRef.current = {
         direction,
         startX: e.clientX,
         startY: e.clientY,
-        startW: layout.w,
-        startH: layout.h,
+        startWidth: currentWidthPx,
+        startHeight: layout.height,
       };
 
       setActiveResize(direction);
@@ -132,6 +147,14 @@ export const PanelWrapper = React.memo(function PanelWrapper({
       document.body.style.cursor =
         direction === 'e' ? 'ew-resize' : direction === 's' ? 'ns-resize' : 'se-resize';
 
+      const snapEnabled = layout.snapToGrid !== false;
+      const gridSize = snapEnabled ? (pageLayout?.snapGridSize ?? 16) : 1;
+
+      const minW = definition.minWidth ?? layout.minWidth ?? 100;
+      const minH = definition.minHeight ?? layout.minHeight ?? 60;
+      const maxW = definition.maxWidth ?? layout.maxWidth ?? Infinity;
+      const maxH = definition.maxHeight ?? layout.maxHeight ?? Infinity;
+
       const handleMouseMove = (moveEvent: MouseEvent) => {
         const state = resizeStateRef.current;
         if (!state) return;
@@ -139,40 +162,29 @@ export const PanelWrapper = React.memo(function PanelWrapper({
         const deltaX = moveEvent.clientX - state.startX;
         const deltaY = moveEvent.clientY - state.startY;
 
-        // Use the LayoutBuilder container width, not the panel's own parent
-        // which shrinks as the panel resizes. Walk up to find the grid container.
-        const gridContainer = wrapperRef.current?.closest('.react-grid-layout') ?? wrapperRef.current?.parentElement;
-        const colWidth =
-          ((gridContainer as HTMLElement)?.clientWidth ?? 800) / gridConfig.columns;
-        const rowPx = gridConfig.rowHeight + gridConfig.margin[1];
-
-        let newW = state.startW;
-        let newH = state.startH;
+        let newWidth = state.startWidth;
+        let newHeight = state.startHeight;
 
         if (direction === 'e' || direction === 'se') {
-          const rawDeltaCols = deltaX / colWidth;
-          newW = state.startW + Math.round(rawDeltaCols);
+          newWidth = state.startWidth + deltaX;
         }
 
         if (direction === 's' || direction === 'se') {
-          const rawDeltaRows = deltaY / rowPx;
-          newH = state.startH + Math.round(rawDeltaRows);
+          newHeight = state.startHeight + deltaY;
         }
 
-        // Apply min/max constraints
-        const minW = definition.minWidth ?? layout.minW ?? 1;
-        const minH = definition.minHeight ?? layout.minH ?? 1;
-        const maxW = layout.maxW ?? gridConfig.columns;
-        const maxH = layout.maxH ?? 100;
+        // Apply snap-to-grid
+        newWidth = snapToGrid(newWidth, gridSize);
+        newHeight = snapToGrid(newHeight, gridSize);
 
-        newW = Math.max(minW, Math.min(maxW, newW));
-        newH = Math.max(minH, Math.min(maxH, newH));
+        // Clamp to min/max constraints
+        newWidth = Math.max(minW, Math.min(maxW, newWidth));
+        newHeight = Math.max(minH, Math.min(maxH, newHeight));
 
-        // Ensure panel doesn't exceed grid bounds
-        newW = Math.min(newW, gridConfig.columns - layout.x);
-
-        if (newW !== layout.w || newH !== layout.h) {
-          onPanelLayoutChange(definition.id, { w: newW, h: newH });
+        // Only emit when values actually changed
+        const currentWidthPx = resolvePixelWidth(layout.width, containerWidth);
+        if (newWidth !== currentWidthPx || newHeight !== layout.height) {
+          onPanelLayoutChange(definition.id, { width: newWidth, height: newHeight });
         }
       };
 
@@ -188,7 +200,7 @@ export const PanelWrapper = React.memo(function PanelWrapper({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [definition, layout, gridConfig, onPanelLayoutChange],
+    [definition, layout, pageLayout, onPanelLayoutChange],
   );
 
   // Cleanup on unmount
@@ -206,7 +218,7 @@ export const PanelWrapper = React.memo(function PanelWrapper({
   const isRuntimeLocked = layout.runtimeLocked === true;
   const isLocked = isDefLocked || isRuntimeLocked;
   const snapEnabled = layout.snapToGrid !== false;
-  const canResize = isEditMode && !isLocked && gridConfig != null;
+  const canResize = isEditMode && !isLocked;
 
   // Locked navigation panels render without Paper chrome for seamless integration
   if (isDefLocked && !isEditMode) {
@@ -219,6 +231,13 @@ export const PanelWrapper = React.memo(function PanelWrapper({
     );
   }
 
+  // Resolve style overrides from layout and definition defaults
+  const effectiveBgColor = layout.bgColor ?? definition.defaultStyle?.bgColor;
+  const effectiveBorderColor = layout.borderColor ?? definition.defaultStyle?.borderColor;
+  const effectiveBorderRadius = layout.borderRadius ?? definition.defaultStyle?.borderRadius;
+  const effectiveHeaderBgColor = layout.headerBgColor ?? definition.defaultStyle?.headerBgColor;
+  const effectiveTextColor = layout.textColor ?? definition.defaultStyle?.textColor;
+
   return (
     <Box ref={wrapperRef} sx={{ position: 'relative', height: '100%', width: '100%' }}>
       <Paper
@@ -230,8 +249,11 @@ export const PanelWrapper = React.memo(function PanelWrapper({
           flexDirection: 'column',
           border: isEditMode ? '2px dashed' : '1px solid',
           borderColor:
-            activeResize != null ? 'secondary.main' : isEditMode ? 'primary.main' : 'divider',
-          borderRadius: 2,
+            activeResize != null
+              ? 'secondary.main'
+              : effectiveBorderColor ?? (isEditMode ? 'primary.main' : 'divider'),
+          borderRadius: effectiveBorderRadius != null ? `${effectiveBorderRadius}px` : 2,
+          bgcolor: effectiveBgColor ?? undefined,
           transition: 'border-color 200ms ease, box-shadow 200ms ease',
           position: 'relative',
         }}
@@ -245,7 +267,7 @@ export const PanelWrapper = React.memo(function PanelWrapper({
             py: 0.75,
             borderBottom: '1px solid',
             borderColor: 'divider',
-            bgcolor: 'action.hover',
+            bgcolor: effectiveHeaderBgColor ?? 'action.hover',
             gap: 1,
             cursor: isEditMode ? 'grab' : 'default',
             '&:active': isEditMode ? { cursor: 'grabbing' } : {},
@@ -253,7 +275,14 @@ export const PanelWrapper = React.memo(function PanelWrapper({
           className={isEditMode ? 'panel-drag-handle' : ''}
         >
           {isEditMode && <DragIndicatorIcon fontSize="small" color="action" />}
-          <Typography variant="subtitle2" sx={{ flexGrow: 1, fontWeight: 600 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              flexGrow: 1,
+              fontWeight: 600,
+              color: effectiveTextColor ?? undefined,
+            }}
+          >
             {definition.title}
           </Typography>
 
@@ -321,11 +350,11 @@ export const PanelWrapper = React.memo(function PanelWrapper({
                 {SIZE_PRESETS.map((preset) => (
                   <MenuItem
                     key={preset.label}
-                    onClick={() => handlePresetClick(preset.w, preset.h)}
+                    onClick={() => handlePresetClick(preset.width, preset.height)}
                     disabled={isLocked}
                   >
                     <AspectRatioIcon fontSize="small" sx={{ mr: 1 }} />
-                    {preset.label} ({preset.w}x{preset.h})
+                    {preset.label} ({String(preset.width)}x{preset.height})
                   </MenuItem>
                 ))}
                 <Divider />

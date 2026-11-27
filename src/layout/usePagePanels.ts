@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { getPanelsForPage } from './panelRegistry';
 import { loadPageLayout } from './layoutStorage';
+import { DEFAULT_CANVAS_WIDTH } from './canvasConstants';
 import type { PanelDefinition, PanelLayout, PageLayout } from './types';
 
 export interface ResolvedPanel {
@@ -9,7 +10,7 @@ export interface ResolvedPanel {
 }
 
 /**
- * Resolves panel definitions for a page against the stored layout.
+ * Resolves panel definitions for a page against the stored canvas layout.
  * Merges stored positions with panel definitions, applies defaults for new panels.
  * Returns sorted array of resolved panels (visible ones first, sorted by position).
  */
@@ -26,9 +27,10 @@ export function usePagePanels(pageId: string): {
         resolvedPanels: [],
         pageLayout: {
           pageId,
-          version: 1,
-          columns: 12,
-          rowHeight: 80,
+          version: 2,
+          canvasWidth: DEFAULT_CANVAS_WIDTH,
+          canvasHeight: 600,
+          snapGridSize: 16,
           panels: [],
           updatedAt: Date.now(),
         },
@@ -39,35 +41,36 @@ export function usePagePanels(pageId: string): {
     const storedLayout = loadPageLayout(pageId, panels);
 
     // Merge: for each panel definition, find matching stored layout or use default
-    // Clamp stored positions to valid grid bounds to handle stale/corrupt layouts
-    const columns = storedLayout.columns || 12;
     const resolved: ResolvedPanel[] = panels.map((def) => {
       const stored = storedLayout.panels.find((p) => p.id === def.id);
-      const raw: PanelLayout = stored ?? {
+      const layout: PanelLayout = stored ?? {
         id: def.id,
         x: def.defaultLayout.x,
         y: def.defaultLayout.y,
-        w: def.defaultLayout.w,
-        h: def.defaultLayout.h,
-        minW: def.minWidth,
-        minH: def.minHeight,
+        width: def.defaultLayout.width,
+        height: def.defaultLayout.height,
+        minWidth: def.minWidth,
+        minHeight: def.minHeight,
+        maxWidth: def.maxWidth,
+        maxHeight: def.maxHeight,
         visible: true,
+        ...(def.defaultStyle ?? {}),
       };
-      // Clamp width to not exceed grid columns
-      const clampedW = Math.min(Math.max(raw.w || def.defaultLayout.w, 1), columns);
-      // Clamp x so panel doesn't extend beyond grid
-      const clampedX = Math.min(Math.max(raw.x || 0, 0), columns - clampedW);
-      // Clamp height to reasonable max (100 rows)
-      const clampedH = Math.min(Math.max(raw.h || def.defaultLayout.h, 1), 100);
-      const clampedY = Math.max(raw.y || 0, 0);
-      const layout: PanelLayout = {
-        ...raw,
-        x: clampedX,
-        y: clampedY,
-        w: clampedW,
-        h: clampedH,
+
+      // Clamp pixel positions to canvas bounds
+      const clampedX = Math.max(layout.x, 0);
+      const clampedY = Math.max(layout.y, 0);
+
+      return {
+        definition: def,
+        layout: {
+          ...layout,
+          x: clampedX,
+          y: clampedY,
+          width: layout.width,
+          height: Math.max(layout.height, 1),
+        },
       };
-      return { definition: def, layout };
     });
 
     // Sort: visible first, then by y position, then by x position
