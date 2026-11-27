@@ -22,7 +22,6 @@ export const FIREWALL_PANELS: PanelDefinition[] = [
  category: 'navigation',
  minWidth: 200,
  minHeight: 48,
- locked: true,
  },
  {
  id: 'rule-actions',
