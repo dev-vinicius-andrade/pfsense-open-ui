@@ -93,24 +93,40 @@ export const CanvasEditWrapper = React.memo(function CanvasEditWrapper({
   }, []);
 
   const commitLayoutChange = useCallback(
-    (updatedPanels: ResolvedPanel[]) => {
+    (updatedPanels: ResolvedPanel[], immediate: boolean = false) => {
       onLayoutChange(updatedPanels);
 
-      // Debounced localStorage save
-      if (saveTimeoutRef.current != null) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => {
-        const newLayout: PageLayout = {
-          ...pageLayout,
-          panels: updatedPanels.map((p) => p.layout),
-          updatedAt: Date.now(),
-        };
+      const newLayout: PageLayout = {
+        ...pageLayout,
+        panels: updatedPanels.map((p) => p.layout),
+        updatedAt: Date.now(),
+      };
+
+      if (immediate) {
+        // Save synchronously on drag-end so data persists before React re-renders
         try {
           const key = `pfsense-layout-${pageLayout.pageId}`;
           localStorage.setItem(key, JSON.stringify(newLayout));
         } catch {
           // Storage full or unavailable — silent fail
         }
-      }, SAVE_DEBOUNCE_MS);
+        // Cancel any pending debounced save since we just saved
+        if (saveTimeoutRef.current != null) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
+      } else {
+        // Debounced save for continuous operations (resize during drag, etc.)
+        if (saveTimeoutRef.current != null) clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = setTimeout(() => {
+          try {
+            const key = `pfsense-layout-${pageLayout.pageId}`;
+            localStorage.setItem(key, JSON.stringify(newLayout));
+          } catch {
+            // Storage full or unavailable — silent fail
+          }
+        }, SAVE_DEBOUNCE_MS);
+      }
     },
     [onLayoutChange, pageLayout],
   );
@@ -266,12 +282,21 @@ export const CanvasEditWrapper = React.memo(function CanvasEditWrapper({
             },
           };
         });
+        // Commit immediately (saves to localStorage via debounce)
+        // Do NOT clear localPositions here — let the parent re-render with
+        // the new resolvedPanels data, which will naturally replace local overrides
         commitLayoutChange(updated);
       }
 
       dragStateRef.current = null;
       setDraggingPanelId(null);
-      setLocalPositions({});
+      // Clear local positions AFTER commit so the visual update is seamless
+      // The parent's resolvedPanels will update via onLayoutChange → usePagePanels re-read
+      setLocalPositions((prev) => {
+        const next = { ...prev };
+        delete next[state.panelId];
+        return next;
+      });
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
 

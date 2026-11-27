@@ -18,7 +18,9 @@ interface LayoutBuilderProps {
 
 export function LayoutBuilder({ pageId, children }: LayoutBuilderProps) {
   const layoutEditMode = useUiStore((state) => state.layoutEditMode);
-  const { resolvedPanels, pageLayout, panels } = usePagePanels(pageId);
+  // Version counter forces usePagePanels to re-read from localStorage after saves
+  const [layoutVersion, setLayoutVersion] = useState(0);
+  const { resolvedPanels, pageLayout, panels } = usePagePanels(pageId, layoutVersion);
   const [addDrawerOpen, setAddDrawerOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -59,6 +61,8 @@ export function LayoutBuilder({ pageId, children }: LayoutBuilderProps) {
         updatedAt: Date.now(),
       };
       savePageLayout(newLayout);
+      // Bump version so usePagePanels re-reads from localStorage on next render
+      setLayoutVersion((v) => v + 1);
     },
     [pageLayout],
   );

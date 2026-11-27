@@ -14,7 +14,7 @@ export interface ResolvedPanel {
  * Merges stored positions with panel definitions, applies defaults for new panels.
  * Returns sorted array of resolved panels (visible ones first, sorted by position).
  */
-export function usePagePanels(pageId: string): {
+export function usePagePanels(pageId: string, _version?: number): {
   resolvedPanels: ResolvedPanel[];
   pageLayout: PageLayout;
   panels: PanelDefinition[];
@@ -81,5 +81,7 @@ export function usePagePanels(pageId: string): {
     });
 
     return { resolvedPanels: resolved, pageLayout: storedLayout, panels };
-  }, [pageId, panels]);
+    // _version is included so the parent can force a re-read from localStorage after saves
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageId, panels, _version]);
 }
