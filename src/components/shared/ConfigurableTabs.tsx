@@ -16,6 +16,8 @@ interface ConfigurableTabsProps {
  ariaLabel?: string;
  variant?: TabsProps['variant'];
  scrollButtons?: TabsProps['scrollButtons'];
+ /** Per-widget orientation override; when omitted, uses the global config value */
+ orientation?: TabOrientation;
 }
 
 type TabOrientation = 'top' | 'bottom' | 'left' | 'right';
@@ -48,8 +50,10 @@ export function ConfigurableTabs({
  ariaLabel,
  variant = 'scrollable',
  scrollButtons = 'auto',
+ orientation: orientationOverride,
 }: ConfigurableTabsProps) {
- const tabOrientation = useConfigStore((s) => s.config.layout.tabOrientation) ?? 'top';
+ const globalOrientation = useConfigStore((s) => s.config.layout.tabOrientation) ?? 'top';
+ const tabOrientation = orientationOverride ?? globalOrientation;
 
  const vertical = isVertical(tabOrientation);
  const flexDirection = getContainerFlexDirection(tabOrientation);
