@@ -23,8 +23,8 @@ export const VPN_PANELS: PanelDefinition[] = [
     component: VpnTabsPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 64 },
     category: 'navigation',
-    minWidth: 4,
-    minHeight: 1,
+    minWidth: 200,
+    minHeight: 48,
     locked: true,
   },
   {
@@ -34,8 +34,8 @@ export const VPN_PANELS: PanelDefinition[] = [
     component: OpenVpnPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'vpn',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'wireguard',
@@ -44,8 +44,8 @@ export const VPN_PANELS: PanelDefinition[] = [
     component: WireGuardPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'vpn',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'ipsec',
@@ -54,8 +54,8 @@ export const VPN_PANELS: PanelDefinition[] = [
     component: IpsecPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'vpn',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 

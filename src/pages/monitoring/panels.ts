@@ -26,8 +26,8 @@ export const MONITORING_PANELS: PanelDefinition[] = [
     component: MonitoringTabsPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 64 },
     category: 'navigation',
-    minWidth: 4,
-    minHeight: 1,
+    minWidth: 200,
+    minHeight: 48,
     locked: true,
   },
   {
@@ -37,8 +37,8 @@ export const MONITORING_PANELS: PanelDefinition[] = [
     component: TrafficGraphsPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'monitoring',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'live-logs',
@@ -47,8 +47,8 @@ export const MONITORING_PANELS: PanelDefinition[] = [
     component: LiveLogsPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'monitoring',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'state-table',
@@ -57,8 +57,8 @@ export const MONITORING_PANELS: PanelDefinition[] = [
     component: StateTablePanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'monitoring',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'gateways',
@@ -67,8 +67,8 @@ export const MONITORING_PANELS: PanelDefinition[] = [
     component: GatewaysPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'monitoring',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 

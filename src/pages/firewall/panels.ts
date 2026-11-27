@@ -20,8 +20,8 @@ export const FIREWALL_PANELS: PanelDefinition[] = [
  component: InterfaceTabsPanel,
  defaultLayout: { x: 0, y: 0, width: '100%', height: 64 },
  category: 'navigation',
- minWidth: 4,
- minHeight: 1,
+ minWidth: 200,
+ minHeight: 48,
  locked: true,
  },
  {
@@ -31,8 +31,8 @@ export const FIREWALL_PANELS: PanelDefinition[] = [
  component: RuleActionsPanel,
  defaultLayout: { x: 0, y: 64, width: '100%', height: 64 },
  category: 'actions',
- minWidth: 4,
- minHeight: 1,
+ minWidth: 200,
+ minHeight: 48,
  },
  {
  id: 'rule-table',
@@ -41,8 +41,8 @@ export const FIREWALL_PANELS: PanelDefinition[] = [
  component: RuleTablePanel,
  defaultLayout: { x: 0, y: 128, width: '100%', height: 512 },
  category: 'primary',
- minWidth: 6,
- minHeight: 4,
+ minWidth: 300,
+ minHeight: 200,
  },
 ];
 

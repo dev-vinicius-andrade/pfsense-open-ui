@@ -36,8 +36,8 @@ export const SYSTEM_PANELS: PanelDefinition[] = [
     component: SystemTabsPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 64 },
     category: 'navigation',
-    minWidth: 4,
-    minHeight: 1,
+    minWidth: 200,
+    minHeight: 48,
     locked: true,
   },
   {
@@ -47,8 +47,8 @@ export const SYSTEM_PANELS: PanelDefinition[] = [
     component: GeneralSetupPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'settings',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'users',
@@ -57,8 +57,8 @@ export const SYSTEM_PANELS: PanelDefinition[] = [
     component: UsersPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'settings',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'certificates',
@@ -67,8 +67,8 @@ export const SYSTEM_PANELS: PanelDefinition[] = [
     component: CertificatesPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'settings',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'firmware',
@@ -77,8 +77,8 @@ export const SYSTEM_PANELS: PanelDefinition[] = [
     component: FirmwarePanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'settings',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'packages',
@@ -87,8 +87,8 @@ export const SYSTEM_PANELS: PanelDefinition[] = [
     component: PackagesPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'settings',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'tunables',
@@ -97,8 +97,8 @@ export const SYSTEM_PANELS: PanelDefinition[] = [
     component: TunablesPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'settings',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'diagnostics',
@@ -107,8 +107,8 @@ export const SYSTEM_PANELS: PanelDefinition[] = [
     component: DiagnosticsPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'settings',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 
@@ -125,8 +125,8 @@ export const ARP_TABLE_PANELS: PanelDefinition[] = [
     component: ArpTablePanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 640 },
     category: 'primary',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 

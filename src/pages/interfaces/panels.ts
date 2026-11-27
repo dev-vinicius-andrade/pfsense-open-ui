@@ -15,8 +15,8 @@ export const INTERFACES_PANELS: PanelDefinition[] = [
     component: InterfaceListPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 512 },
     category: 'primary',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 
@@ -35,8 +35,8 @@ export const VLANS_PANELS: PanelDefinition[] = [
     component: VlansPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 512 },
     category: 'primary',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 
@@ -55,8 +55,8 @@ export const BRIDGES_PANELS: PanelDefinition[] = [
     component: BridgesPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 512 },
     category: 'primary',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 
@@ -75,8 +75,8 @@ export const GRE_PANELS: PanelDefinition[] = [
     component: GreTunnelsPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 512 },
     category: 'primary',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 
@@ -95,8 +95,8 @@ export const LAGG_PANELS: PanelDefinition[] = [
     component: LaggPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 512 },
     category: 'primary',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 
@@ -115,8 +115,8 @@ export const INTERFACE_GROUPS_PANELS: PanelDefinition[] = [
     component: InterfaceGroupsPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 512 },
     category: 'primary',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 
@@ -135,8 +135,8 @@ export const VIRTUAL_IPS_PANELS: PanelDefinition[] = [
     component: VirtualIpsPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 512 },
     category: 'primary',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 

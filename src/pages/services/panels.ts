@@ -32,8 +32,8 @@ export const SERVICES_PANELS: PanelDefinition[] = [
     component: ServiceTabsPanel,
     defaultLayout: { x: 0, y: 0, width: '100%', height: 64 },
     category: 'navigation',
-    minWidth: 4,
-    minHeight: 1,
+    minWidth: 200,
+    minHeight: 48,
     locked: true,
   },
   {
@@ -43,8 +43,8 @@ export const SERVICES_PANELS: PanelDefinition[] = [
     component: DhcpServerPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'services',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'dns-resolver',
@@ -53,8 +53,8 @@ export const SERVICES_PANELS: PanelDefinition[] = [
     component: DnsResolverPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'services',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'dns-forwarder',
@@ -63,8 +63,8 @@ export const SERVICES_PANELS: PanelDefinition[] = [
     component: DnsForwarderPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'services',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'ntp',
@@ -73,8 +73,8 @@ export const SERVICES_PANELS: PanelDefinition[] = [
     component: NtpPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'services',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'ssh',
@@ -83,8 +83,8 @@ export const SERVICES_PANELS: PanelDefinition[] = [
     component: SshPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'services',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
   {
     id: 'cron-jobs',
@@ -93,8 +93,8 @@ export const SERVICES_PANELS: PanelDefinition[] = [
     component: CronJobsPanel,
     defaultLayout: { x: 0, y: 64, width: '100%', height: 512 },
     category: 'services',
-    minWidth: 6,
-    minHeight: 4,
+    minWidth: 300,
+    minHeight: 200,
   },
 ];
 
