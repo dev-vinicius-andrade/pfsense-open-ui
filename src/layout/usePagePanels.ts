@@ -39,9 +39,11 @@ export function usePagePanels(pageId: string): {
     const storedLayout = loadPageLayout(pageId, panels);
 
     // Merge: for each panel definition, find matching stored layout or use default
+    // Clamp stored positions to valid grid bounds to handle stale/corrupt layouts
+    const columns = storedLayout.columns || 12;
     const resolved: ResolvedPanel[] = panels.map((def) => {
       const stored = storedLayout.panels.find((p) => p.id === def.id);
-      const layout: PanelLayout = stored ?? {
+      const raw: PanelLayout = stored ?? {
         id: def.id,
         x: def.defaultLayout.x,
         y: def.defaultLayout.y,
@@ -50,6 +52,20 @@ export function usePagePanels(pageId: string): {
         minW: def.minWidth,
         minH: def.minHeight,
         visible: true,
+      };
+      // Clamp width to not exceed grid columns
+      const clampedW = Math.min(Math.max(raw.w || def.defaultLayout.w, 1), columns);
+      // Clamp x so panel doesn't extend beyond grid
+      const clampedX = Math.min(Math.max(raw.x || 0, 0), columns - clampedW);
+      // Clamp height to reasonable max (100 rows)
+      const clampedH = Math.min(Math.max(raw.h || def.defaultLayout.h, 1), 100);
+      const clampedY = Math.max(raw.y || 0, 0);
+      const layout: PanelLayout = {
+        ...raw,
+        x: clampedX,
+        y: clampedY,
+        w: clampedW,
+        h: clampedH,
       };
       return { definition: def, layout };
     });
