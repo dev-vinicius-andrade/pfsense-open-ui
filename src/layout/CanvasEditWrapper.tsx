@@ -14,7 +14,6 @@ interface CanvasEditWrapperProps {
 
 const MOBILE_BREAKPOINT = 768;
 const CANVAS_PADDING_BOTTOM = 48;
-const SAVE_DEBOUNCE_MS = 300;
 
 type DragMode = 'move' | 'resize-e' | 'resize-s' | 'resize-se';
 
@@ -289,9 +288,9 @@ export const CanvasEditWrapper = React.memo(function CanvasEditWrapper({
           layout: { ...rp.layout, ...updates },
         };
       });
-      // Use immediate=true so non-drag changes (tab orientation, fit, align)
-      // are saved synchronously to localStorage without debounce delay
-      commitLayoutChange(updated, true);
+      // Delegate persistence to LayoutBuilder.handleLayoutChange which has
+      // fresh pageLayout data and bumps the version counter for re-read
+      commitLayoutChange(updated);
     },
     [resolvedPanels, commitLayoutChange],
   );
