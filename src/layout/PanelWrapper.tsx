@@ -429,9 +429,11 @@ export const PanelWrapper = React.memo(function PanelWrapper({
                 <ListSubheader>Tab Orientation</ListSubheader>
                 {(['top', 'bottom', 'left', 'right'] as const).map((o) => (
                   <MenuItem
-                    key={o}
+                    key={`tab-orientation-${o}`}
+                    data-testid={`tab-orientation-${o}`}
                     selected={layout.tabOrientation === o}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       onPanelLayoutChange?.(definition.id, { tabOrientation: o });
                       handleMenuClose();
                     }}

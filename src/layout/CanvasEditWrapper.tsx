@@ -93,42 +93,15 @@ export const CanvasEditWrapper = React.memo(function CanvasEditWrapper({
   }, []);
 
   const commitLayoutChange = useCallback(
-    (updatedPanels: ResolvedPanel[], immediate: boolean = false) => {
+    (updatedPanels: ResolvedPanel[]) => {
+      // Delegate ALL persistence to the parent (LayoutBuilder.handleLayoutChange)
+      // which has fresh pageLayout data and bumps the version counter.
+      // Previously this function also saved to localStorage directly using a stale
+      // pageLayout closure, which caused fields like tabOrientation to be lost
+      // because the stale write would overwrite the parent's correct write.
       onLayoutChange(updatedPanels);
-
-      const newLayout: PageLayout = {
-        ...pageLayout,
-        panels: updatedPanels.map((p) => p.layout),
-        updatedAt: Date.now(),
-      };
-
-      if (immediate) {
-        // Save synchronously on drag-end so data persists before React re-renders
-        try {
-          const key = `pfsense-layout-${pageLayout.pageId}`;
-          localStorage.setItem(key, JSON.stringify(newLayout));
-        } catch {
-          // Storage full or unavailable — silent fail
-        }
-        // Cancel any pending debounced save since we just saved
-        if (saveTimeoutRef.current != null) {
-          clearTimeout(saveTimeoutRef.current);
-          saveTimeoutRef.current = null;
-        }
-      } else {
-        // Debounced save for continuous operations (resize during drag, etc.)
-        if (saveTimeoutRef.current != null) clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = setTimeout(() => {
-          try {
-            const key = `pfsense-layout-${pageLayout.pageId}`;
-            localStorage.setItem(key, JSON.stringify(newLayout));
-          } catch {
-            // Storage full or unavailable — silent fail
-          }
-        }, SAVE_DEBOUNCE_MS);
-      }
     },
-    [onLayoutChange, pageLayout],
+    [onLayoutChange],
   );
 
   const getEffectivePosition = useCallback(
@@ -316,7 +289,9 @@ export const CanvasEditWrapper = React.memo(function CanvasEditWrapper({
           layout: { ...rp.layout, ...updates },
         };
       });
-      commitLayoutChange(updated);
+      // Use immediate=true so non-drag changes (tab orientation, fit, align)
+      // are saved synchronously to localStorage without debounce delay
+      commitLayoutChange(updated, true);
     },
     [resolvedPanels, commitLayoutChange],
   );
