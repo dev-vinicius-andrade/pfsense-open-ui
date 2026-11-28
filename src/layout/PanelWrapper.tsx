@@ -427,28 +427,38 @@ export const PanelWrapper = React.memo(function PanelWrapper({
                 </MenuItem>
                 <Divider />
                 <ListSubheader>Tab Orientation</ListSubheader>
-                {(['top', 'bottom', 'left', 'right'] as const).map((o) => (
-                  <MenuItem
-                    key={`tab-orientation-${o}`}
-                    data-testid={`tab-orientation-${o}`}
-                    selected={layout.tabOrientation === o}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onPanelLayoutChange?.(definition.id, { tabOrientation: o });
-                      handleMenuClose();
-                    }}
-                    disabled={isRuntimeLocked}
-                  >
-                    <ListItemIcon>
-                      {o === 'left' || o === 'right' ? (
-                        <ViewColumnIcon fontSize="small" />
-                      ) : (
-                        <TableRowsIcon fontSize="small" />
-                      )}
-                    </ListItemIcon>
-                    <ListItemText primary={`${o.charAt(0).toUpperCase() + o.slice(1)}`} />
-                  </MenuItem>
-                ))}
+                <MenuItem
+                  key="tab-orientation-horizontal"
+                  data-testid="tab-orientation-horizontal"
+                  selected={!layout.tabOrientation || layout.tabOrientation === 'top' || layout.tabOrientation === 'bottom'}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPanelLayoutChange?.(definition.id, { tabOrientation: 'top' });
+                    handleMenuClose();
+                  }}
+                  disabled={isRuntimeLocked}
+                >
+                  <ListItemIcon>
+                    <TableRowsIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Horizontal" />
+                </MenuItem>
+                <MenuItem
+                  key="tab-orientation-vertical"
+                  data-testid="tab-orientation-vertical"
+                  selected={layout.tabOrientation === 'left' || layout.tabOrientation === 'right'}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPanelLayoutChange?.(definition.id, { tabOrientation: 'left' });
+                    handleMenuClose();
+                  }}
+                  disabled={isRuntimeLocked}
+                >
+                  <ListItemIcon>
+                    <ViewColumnIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Vertical" />
+                </MenuItem>
               </Menu>
             </>
           )}
